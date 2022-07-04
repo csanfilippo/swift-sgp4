@@ -33,6 +33,8 @@ private extension TLE {
 /// A class that calculates the satellite position, speed and altitude using a TLE set
 public final class TLEInterpreter {
 
+	public init() {}
+
 	/// Returns a SatelliteData instance calculated from a TLE set
 	///
 	/// - parameter tle: The TLE set
