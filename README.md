@@ -1,4 +1,4 @@
-# swift-spg
+# swift-sgp4
 A Swift package to compute satellite positions from two-line elements (TLE), wrapping the [sgp4lib](https://www.danrw.com/sgp4/) library (by Daniel Warner)
 
 
