@@ -34,7 +34,7 @@ If you want to use SGPKit in any other project that uses [SwiftPM](https://swift
 ```swift
 dependencies: [
   .package(
-    url: "https://github.com/csanfilippo/swift-sgp",
+    url: "https://github.com/csanfilippo/swift-sgp4",
     from: "1.0.0"
   ),
 ]
