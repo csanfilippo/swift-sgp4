@@ -1,5 +1,6 @@
 # swift-sgp4
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fcsanfilippo%2Fswift-sgp4%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/csanfilippo/swift-sgp4) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fcsanfilippo%2Fswift-sgp4%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/csanfilippo/swift-sgp4)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fcsanfilippo%2Fswift-sgp4%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/csanfilippo/swift-sgp4) 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fcsanfilippo%2Fswift-sgp4%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/csanfilippo/swift-sgp4)
 
 A Swift package to compute satellite positions from two-line elements (TLE), wrapping the [sgp4lib](https://www.danrw.com/sgp4/) library (by Daniel Warner)
 

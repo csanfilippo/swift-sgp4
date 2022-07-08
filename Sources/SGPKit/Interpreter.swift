@@ -30,7 +30,13 @@ private extension TLE {
 	}
 }
 
-/// A class that calculates the satellite position, speed and altitude using a TLE set
+private extension SGPKitOBJC.SatelliteData {
+	var asSatelliteData: SatelliteData {
+		SatelliteData(latitude: latitude, longitude: longitude, speed: speed, altitude: altitude)
+	}
+}
+
+/// A class that calculates the satellite position, speed and altitude from a TLE set
 public final class TLEInterpreter {
 
 	public init() {}
@@ -43,6 +49,6 @@ public final class TLEInterpreter {
 	public func satelliteData(from tle: TLE, date: Date) -> SatelliteData {
 		let wrapper = SGP4Wrapper()
 		let result: SGPKitOBJC.SatelliteData = wrapper.getSatelliteData(from: tle.asTLEWrapper, date: date)
-		return SatelliteData(latitude: result.latitude, longitude: result.longitude, speed: result.speed, altitude: result.altitude)
+		return result.asSatelliteData
 	}
 }

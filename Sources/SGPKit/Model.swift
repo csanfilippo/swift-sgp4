@@ -23,6 +23,7 @@
  */
 
 import Foundation
+
 /// An object describing a TLE set
 public struct TLE {
 
@@ -40,6 +41,7 @@ public struct TLE {
 	}
 }
 
+/// A model describing a satellite using geodetic coordinates
 public struct SatelliteData {
 
 	/// The geodetic latitude of the satellite
@@ -51,6 +53,6 @@ public struct SatelliteData {
 	/// Satellite's speed expressed in km/h
 	public let speed: Double
 
-	/// The altitude
+	/// The altitude expressed in km
 	public let altitude: Double
 }

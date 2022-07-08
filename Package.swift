@@ -10,9 +10,6 @@ let package = Package(
             name: "SGPKit",
             targets: ["SGPKit"]),
     ],
-    dependencies: [
-
-    ],
     targets: [
         .target(
             name: "SGPKit",
