@@ -28,7 +28,7 @@ import Foundation
 public struct TLE {
 
 	/// The title line of the TLE set
-	public var title: String = ""
+	public let title: String
 
 	/// The first line of the TLE set
 	public let firstLine: String
@@ -36,9 +36,25 @@ public struct TLE {
 	/// The first line of the TLE set
 	public let secondLine: String
 
-	public init(firstLine: String, secondLine: String) {
+	/// Create a TLE
+	///
+	/// - Parameters:
+	///   - title: The title of the TLE set
+	///   - firstLine: the first line of the TLE set
+	///   - secondLine: the second line of the TLE set
+	public init(title: String, firstLine: String, secondLine: String) {
+		self.title = title
 		self.firstLine = firstLine
 		self.secondLine = secondLine
+	}
+
+	/// A convenience initializer for creating a TLE with an empty title
+	///
+	/// - Parameters:
+	///   - firstLine: the first line of the TLE set
+	///   - secondLine: the second line of the TLE set
+	public convenience init(firstLine: String, secondLine: String) {
+		self.init(title: "", firstLine: firstLine, secondLine: secondLine)
 	}
 }
 
