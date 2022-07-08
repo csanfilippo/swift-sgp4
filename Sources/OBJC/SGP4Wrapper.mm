@@ -32,27 +32,33 @@
 #import <Eci.h>
 using namespace std;
 
+@interface SGP4Wrapper()
+- (DateTime) dateTimeFrom:(NSDate*) date;
+- (SatelliteData *) issDataFromSgp4:(SGP4) sgp4 Date:(DateTime) date;
+- (SGP4) getSGP4From:(TLEWrapper*) tleWrapper;
+@end
+
 @implementation SGP4Wrapper
 
-- (SatelliteData* _Nonnull) getSatelliteDataFrom:(TLEWrapper*) tleWrapper date:(NSDate*) date {
-	SGP4 (^getSGP4)(void) = ^{
+- (SatelliteData*) getSatelliteDataFrom:(TLEWrapper*) tleWrapper date:(NSDate*) date {
 
-		string first(tleWrapper.title.UTF8String);
-		string second(tleWrapper.firstLine.UTF8String);
-		string third(tleWrapper.secondLine.UTF8String);
-
-		Tle tle(first, second, third);
-		SGP4 sgp4(tle);
-		return sgp4;
-	};
-
-	SGP4 sgp4 = getSGP4();
+	SGP4 sgp4 = [self getSGP4From:tleWrapper];
 
     DateTime currentTime = [self dateTimeFrom: date];
 
 	SatelliteData *data = [self issDataFromSgp4:sgp4 Date:currentTime];
 
 	return data;
+}
+
+- (SGP4) getSGP4From:(TLEWrapper*) tleWrapper {
+    string first(tleWrapper.title.UTF8String);
+    string second(tleWrapper.firstLine.UTF8String);
+    string third(tleWrapper.secondLine.UTF8String);
+
+    Tle tle(first, second, third);
+    SGP4 sgp4(tle);
+    return sgp4;
 }
 
 - (DateTime) dateTimeFrom:(NSDate*) date {

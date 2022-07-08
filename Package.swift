@@ -8,8 +8,12 @@ let package = Package(
     products: [
         .library(
             name: "SGPKit",
-            targets: ["SGPKit"]),
+            targets: ["SGPKit"])
     ],
+	dependencies: [
+		.package(url: "https://github.com/Quick/Nimble", .upToNextMajor(from: "10.0.0")),
+		.package(url: "https://github.com/Quick/Quick", .upToNextMajor(from: "5.0.0"))
+	],
     targets: [
         .target(
             name: "SGPKit",
@@ -24,7 +28,11 @@ let package = Package(
 			path: "Sources/OBJC"),
         .testTarget(
             name: "SGPKitTests",
-            dependencies: ["SGPKit"]),
+            dependencies: [
+				"SGPKit",
+				.product(name: "Nimble", package: "Nimble"),
+				.product(name: "Quick", package: "Quick")
+			])
     ]
 )
 

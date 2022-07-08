@@ -24,6 +24,12 @@
 
 #import "TLEWrapper.h"
 
+@interface TLEWrapper ()
+@property(nonnull, nonatomic, readwrite) NSString *title;
+@property(nonnull, nonatomic, readwrite) NSString *firstLine;
+@property(nonnull, nonatomic, readwrite) NSString *secondLine;
+@end
+
 @implementation TLEWrapper
 
 - (instancetype) initWithTitle:(NSString*) title firstLine:(NSString*) firstLine secondLine:(NSString*) secondLine; {

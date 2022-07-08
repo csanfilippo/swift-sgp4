@@ -1,4 +1,7 @@
-import XCTest
+import Quick
+import Nimble
+import Foundation
+
 @testable import SGPKit
 
 private enum Error: Swift.Error {
@@ -6,26 +9,34 @@ private enum Error: Swift.Error {
 	case invalidTimezone
 }
 
-final class SGPKitTests: XCTestCase {
-    func testGeoPosition() throws {
-		let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
-		let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
-		let tle = TLE(firstLine: firstLine, secondLine: secondLine)
-		let interpreter = TLEInterpreter()
-		let data = interpreter.satelliteData(from: tle, date: try generateTestDate())
+private let tolerance = 0.000001
 
-		let expectedLatitude = 45.2893067
-		let expectedLongitude = -136.62764
-		let expectedAltitude = 411.5672031
+final class SGPKitTests: QuickSpec {
+	override func spec() {
+		context("TLEInterpreter") {
+			describe("when a TLE is passed") {
+				it("should return the expected satellite data") {
+					let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
+					let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
+					let tle = TLE(firstLine: firstLine, secondLine: secondLine)
+					let interpreter = TLEInterpreter()
+					let data = interpreter.satelliteData(from: tle, date: try self.generateTestDate())
 
-		let latitudeDiff = fabs(data.latitude - expectedLatitude)
-		let longitudeDiff = fabs(data.longitude - expectedLongitude)
-		let altitudeDiff = fabs(data.altitude - expectedAltitude)
+					let expectedLatitude = 45.2893067
+					let expectedLongitude = -136.62764
+					let expectedAltitude = 411.5672031
 
-		XCTAssertTrue(latitudeDiff <= 0.000001)
-		XCTAssertTrue(longitudeDiff <= 0.000001)
-		XCTAssertTrue(altitudeDiff <= 0.000001)
-    }
+					let latitudeAbsoluteDiff = fabs(data.latitude - expectedLatitude)
+					let longitudeAbsoluteDiff = fabs(data.longitude - expectedLongitude)
+					let altitudeAbsoluteDiff = fabs(data.altitude - expectedAltitude)
+
+					expect(latitudeAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+					expect(longitudeAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+					expect(altitudeAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+				}
+			}
+		}
+	}
 
 	private func generateTestDate() throws -> Date {
 		var calendar = Calendar.current
