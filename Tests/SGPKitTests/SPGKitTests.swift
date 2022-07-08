@@ -1,3 +1,27 @@
+/*
+ MIT License
+
+ Copyright (c) 2022 Calogero Sanfilippo
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+ */
+
 import Quick
 import Nimble
 import Foundation
@@ -18,7 +42,7 @@ final class SGPKitTests: QuickSpec {
 				it("should return the expected satellite data") {
 					let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
 					let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
-					let tle = TLE(firstLine: firstLine, secondLine: secondLine)
+					let tle = TLE(title: "", firstLine: firstLine, secondLine: secondLine)
 					let interpreter = TLEInterpreter()
 					let data = interpreter.satelliteData(from: tle, date: try self.generateTestDate())
 
