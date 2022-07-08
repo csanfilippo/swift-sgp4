@@ -28,10 +28,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TLEWrapper : NSObject
 
+@property(nonnull, nonatomic) NSString *title;
 @property(nonnull, nonatomic) NSString *firstLine;
 @property(nonnull, nonatomic) NSString *secondLine;
 
-- (nonnull instancetype) initWithFirstLine:(NSString* _Nonnull) firstLine secondLine:(NSString* _Nonnull) secondLine;
+- (nonnull instancetype) initWithTitle:(NSString*_Nonnull) title firstLine:(NSString* _Nonnull) firstLine secondLine:(NSString* _Nonnull) secondLine;
 
 @end
 

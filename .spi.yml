@@ -1,0 +1,10 @@
+version: 1
+builder:
+  configs:
+  - platform: ios
+    scheme: SGPKit
+  - platform: tvos
+    scheme: SGPKit
+  - platform: watchos
+    scheme: SGPKit
+  - documentation_targets: [SGPKit]

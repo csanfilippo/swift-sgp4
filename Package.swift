@@ -1,4 +1,4 @@
-// swift-tools-version: 5.6
+// swift-tools-version: 5.5
 
 import PackageDescription
 
@@ -30,3 +30,9 @@ let package = Package(
             dependencies: ["SGPKit"]),
     ]
 )
+
+#if swift(>=5.6)
+package.dependencies.append(
+	.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0")
+)
+#endif

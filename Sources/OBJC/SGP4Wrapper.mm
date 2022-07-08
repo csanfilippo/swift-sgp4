@@ -37,7 +37,7 @@ using namespace std;
 - (SatelliteData* _Nonnull) getSatelliteDataFrom:(TLEWrapper*) tleWrapper date:(NSDate*) date {
 	SGP4 (^getSGP4)(void) = ^{
 
-		string first("ISS (ZARYA)");
+		string first(tleWrapper.title.UTF8String);
 		string second(tleWrapper.firstLine.UTF8String);
 		string third(tleWrapper.secondLine.UTF8String);
 

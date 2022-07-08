@@ -26,10 +26,11 @@
 
 @implementation TLEWrapper
 
-- (instancetype)initWithFirstLine:(NSString *)firstLine secondLine:(NSString *)secondLine {
+- (instancetype) initWithTitle:(NSString*) title firstLine:(NSString*) firstLine secondLine:(NSString*) secondLine; {
 	self = [super init];
 
 	if (self) {
+		self.title = title;
 		self.firstLine = firstLine;
 		self.secondLine = secondLine;
 	}

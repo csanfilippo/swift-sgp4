@@ -25,6 +25,9 @@
 import Foundation
 /// An object describing a TLE set
 public struct TLE {
+
+	public var title: String = ""
+
 	/// The first line of the TLE set
 	public let firstLine: String
 

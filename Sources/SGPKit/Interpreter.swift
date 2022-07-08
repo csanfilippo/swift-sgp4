@@ -26,7 +26,7 @@ import SGPKitOBJC
 
 private extension TLE {
 	var asTLEWrapper: TLEWrapper {
-		TLEWrapper(firstLine: firstLine, secondLine: secondLine)
+		TLEWrapper(title: title, firstLine: firstLine, secondLine: secondLine)
 	}
 }
 
