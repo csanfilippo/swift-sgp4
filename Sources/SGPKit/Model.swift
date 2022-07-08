@@ -53,7 +53,7 @@ public struct TLE {
 	/// - Parameters:
 	///   - firstLine: the first line of the TLE set
 	///   - secondLine: the second line of the TLE set
-	public convenience init(firstLine: String, secondLine: String) {
+	public init(firstLine: String, secondLine: String) {
 		self.init(title: "", firstLine: firstLine, secondLine: secondLine)
 	}
 }
