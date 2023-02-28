@@ -25,6 +25,7 @@
 import Quick
 import Nimble
 import Foundation
+import CoreLocation
 
 @testable import SGPKit
 
@@ -58,6 +59,33 @@ final class SGPKitTests: QuickSpec {
 					expect(longitudeAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
 					expect(altitudeAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
 				}
+                it("should return the expected look angles") {
+                    let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
+                    let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
+                    let tle = TLE(title: "", firstLine: firstLine, secondLine: secondLine)
+                    let interpreter = TLEInterpreter()
+
+                    let groundStationLatitude = 0.0
+                    let groundStationLongitude = 0.0
+                    let groundStationAltitude = 100.0
+                    
+                    let data = interpreter.lookAngles(from: tle, date: try self.generateTestDate(), coordinate: CLLocationCoordinate2D(latitude: groundStationLatitude, longitude: groundStationLongitude), altitude: groundStationAltitude)
+                    
+                    let expectedAzimuth = 325.622437
+                    let expectedElevation = -59.695258
+                    let expectedRange = 11531.663004
+                    let expectedRangeRate = -3.530533
+                    
+                    let azimuthAbsoluteDiff = fabs(data.azimuth - expectedAzimuth)
+                    let elevationAbsoluteDiff = fabs(data.elevation - expectedElevation)
+                    let rangeAbsoluteDiff = fabs(data.range - expectedRange)
+                    let rangeRateAbsoluteDiff = fabs(data.rangeRate - expectedRangeRate)
+                    
+                    expect(azimuthAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+                    expect(elevationAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+                    expect(rangeAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+                    expect(rangeRateAbsoluteDiff).to(beLessThanOrEqualTo(tolerance))
+                }
 			}
 		}
 	}

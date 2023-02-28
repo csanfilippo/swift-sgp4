@@ -30,11 +30,14 @@
 #import <DateTime.h>
 #import <CoordGeodetic.h>
 #import <Eci.h>
+#import <CoordTopocentric.h>
+#import <Observer.h>
 using namespace std;
 
 @interface SGP4Wrapper()
 - (DateTime) dateTimeFrom:(NSDate*) date;
 - (SatelliteData *) issDataFromSgp4:(SGP4) sgp4 Date:(DateTime) date;
+- (LookAngles *) lookAngles:(SGP4) sgp4 Date:(DateTime) date station:(CoordGeodetic) user_geo;
 - (SGP4) getSGP4From:(TLEWrapper*) tleWrapper;
 @end
 
@@ -49,6 +52,19 @@ using namespace std;
 	SatelliteData *data = [self issDataFromSgp4:sgp4 Date:currentTime];
 
 	return data;
+}
+
+- (LookAngles*) getLookFrom:(TLEWrapper*) tleWrapper date:(NSDate*) date coordinate:(CLLocationCoordinate2D) coordinate altitude:(double) altitude {
+    
+    SGP4 sgp4 = [self getSGP4From:tleWrapper];
+
+    DateTime currentTime = [self dateTimeFrom: date];
+    
+    CoordGeodetic user_geo = CoordGeodetic(coordinate.latitude, coordinate.longitude, altitude);
+
+    LookAngles *data = [self lookAngles:sgp4 Date:currentTime station:user_geo];
+
+    return data;
 }
 
 - (SGP4) getSGP4From:(TLEWrapper*) tleWrapper {
@@ -85,6 +101,13 @@ using namespace std;
 
 	double velocity = eci.Velocity().Magnitude() * 3600.0;
 	return [[SatelliteData alloc] initWithLatitude:geo.latitude * 180.0 / M_PI longitude:geo.longitude * 180.0 / M_PI speed:velocity altitude:geo.altitude];
+}
+
+- (LookAngles *) lookAngles:(SGP4) sgp4 Date:(DateTime) date station:(CoordGeodetic) user_geo {
+    Eci eci = sgp4.FindPosition(date);
+    Observer obs = Observer(user_geo);
+    CoordTopocentric topo = obs.GetLookAngle(eci);
+    return [[LookAngles alloc] initWithAzimuth:topo.azimuth * 180.0 / M_PI elevation:topo.elevation * 180 / M_PI range:topo.range rangeRate:topo.range_rate];
 }
 
 @end
