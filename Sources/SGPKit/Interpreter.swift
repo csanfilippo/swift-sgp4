@@ -23,6 +23,7 @@
  */
 
 import SGPKitOBJC
+import CoreLocation
 
 private extension TLE {
 	var asTLEWrapper: TLEWrapper {
@@ -34,6 +35,12 @@ private extension SGPKitOBJC.SatelliteData {
 	var asSatelliteData: SatelliteData {
 		SatelliteData(latitude: latitude, longitude: longitude, speed: speed, altitude: altitude)
 	}
+}
+
+private extension SGPKitOBJC.LookAngles {
+    var asLookAngles: LookAngles {
+        LookAngles(azimuth: azimuth, elevation: elevation, range: range, rangeRate: rangeRate)
+    }
 }
 
 /// A class that calculates the satellite position, speed and altitude from a TLE set
@@ -51,4 +58,15 @@ public final class TLEInterpreter {
 		let result: SGPKitOBJC.SatelliteData = wrapper.getSatelliteData(from: tle.asTLEWrapper, date: date)
 		return result.asSatelliteData
 	}
+    
+    /// Returns a LookAngles instance calculated from a TLE set and ground station coordinates and altitude
+    ///
+    /// - parameter tle: The TLE set
+    /// - parameter date: Date for which we want to obtain information about the looking angles
+    /// - returns: A LookAngles describing azimuth and elevation of satellite
+    public func lookAngles(from tle: TLE, date: Date, coordinate: CLLocationCoordinate2D, altitude: Double) -> LookAngles {
+        let wrapper = SGP4Wrapper()
+        let result: SGPKitOBJC.LookAngles = wrapper.getLookFrom(tle.asTLEWrapper, date: date, coordinate: coordinate, altitude: altitude)
+        return result.asLookAngles
+    }
 }

@@ -73,3 +73,19 @@ public struct SatelliteData {
 	/// The altitude expressed in km
 	public let altitude: Double
 }
+
+/// A model describing a satellite using topocentric coordinates
+public struct LookAngles {
+    
+    /// The topocentric azimuth of the satellite
+    public let azimuth: Double
+    
+    /// The topocentric elevation of the satellite
+    public let elevation: Double
+    
+    /// The topocentric range of the satellite
+    public let range: Double
+    
+    /// The topocentric range rate of the satellite
+    public let rangeRate: Double
+}

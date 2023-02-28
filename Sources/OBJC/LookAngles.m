@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2022 Calogero Sanfilippo
+ Copyright (c) 2023 Victor Belov
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,25 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "SatelliteData.h"
 #import "LookAngles.h"
-#import "TLEWrapper.h"
-#import <Corelocation/CoreLocation.h>
 
-NS_ASSUME_NONNULL_BEGIN
-
-@interface SGP4Wrapper : NSObject
-
-- (SatelliteData* _Nonnull) getSatelliteDataFrom:(TLEWrapper* _Nonnull) tle date:(NSDate* _Nonnull) date;
-- (LookAngles* _Nonnull) getLookFrom:(TLEWrapper* _Nonnull) tleWrapper date:(NSDate* _Nonnull) date coordinate:(CLLocationCoordinate2D) coordinate altitude:(double) altitude;
+@interface LookAngles ()
+@property(readwrite) double azimuth;
+@property(readwrite) double elevation;
+@property(readwrite) double range;
+@property(readwrite) double rangeRate;
 @end
 
-NS_ASSUME_NONNULL_END
+@implementation LookAngles
+- (instancetype) initWithAzimuth:(double) azimuth elevation:(double) elevation range:(double) range rangeRate:(double) rangeRate {
+    self = [super init];
+    if (self) {
+        self.azimuth = azimuth;
+        self.elevation = elevation;
+        self.range = range;
+        self.rangeRate = rangeRate;
+    }
+    return self;
+}
+
+@end
