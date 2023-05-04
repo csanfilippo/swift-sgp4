@@ -34,16 +34,14 @@ final class TLEParserTests: QuickSpec {
             context("when parsing an empty buffer") {
                 it("should throw an exception") {
                     let emptyBuffer = Data()
-                    let parser = TLEParser()
 
-                    expect { try parser.parse(emptyBuffer) }.to(throwError(TLEParser.Error.empty))
+                    expect { try TLEParser.parse(emptyBuffer) }.to(throwError(TLEParser.Error.empty))
                 }
             }
 
             context("when parsing a not empty buffer") {
                 context("if the buffer contains valid data") {
                     it("should return a TLE model") {
-                        let parser = TLEParser()
                         let validData = self.loadValidTLEData()
 
 						let expectedTLE = TLE(
@@ -53,7 +51,7 @@ final class TLEParserTests: QuickSpec {
                         )
 
                         do {
-                            let tle = try parser.parse(validData)
+                            let tle = try TLEParser.parse(validData)
                             expect(tle.title).to(equal(expectedTLE.title))
                             expect(tle.firstLine).to(equal(expectedTLE.firstLine))
                             expect(tle.secondLine).to(equal(expectedTLE.secondLine))
@@ -65,11 +63,10 @@ final class TLEParserTests: QuickSpec {
 
                 context("if the encoded TLE doesn't have 3 lines") {
                     it("should raise an exception") {
-                        let parser = TLEParser()
 						let invalidData = self.loadOneLineTLEData()
 
                         do {
-                            _ = try parser.parse(invalidData)
+                            _ = try TLEParser.parse(invalidData)
                             fail()
                         } catch let tleParserError as TLEParser.Error {
                             if case let TLEParser.Error.wrongLineCount(count) = tleParserError {
@@ -85,11 +82,10 @@ final class TLEParserTests: QuickSpec {
 
                 context("if not all the lines of the TLE have 69 characters") {
                     it("should raise an exception") {
-                        let parser = TLEParser()
 						let invalidData = self.loadInvalidLineLengthTLEData()
 
                         do {
-                            _ = try parser.parse(invalidData)
+                            _ = try TLEParser.parse(invalidData)
                             fail()
                         } catch let tleParserError as TLEParser.Error {
                             if case TLEParser.Error.invalidLineLength = tleParserError {
