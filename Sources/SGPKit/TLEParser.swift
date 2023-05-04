@@ -58,7 +58,7 @@ public struct TLEParser {
         }
 
         let lines = string
-            .components(separatedBy: "\n")
+            .split(whereSeparator: { $0.isNewline })
             .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
             .filter { $0.count > 0 }
 
@@ -86,9 +86,7 @@ public struct TLEParser {
         }
 
         let lines = dataString
-            .split(whereSeparator: { elem in
-                elem.isNewline
-            })
+            .split(whereSeparator: { $0.isNewline })
             .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
             .filter { $0.count > 0 }
 
