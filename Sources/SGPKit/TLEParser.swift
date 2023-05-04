@@ -58,9 +58,9 @@ public final class TLEParser {
         }
 
         let lines = string
-            .trimmingCharacters(in: .newlines)
-			.split(separator: "\n")
-			.map({ String($0) })
+            .components(separatedBy: "\n")
+            .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
+            .filter { $0.count > 0 }
 
         guard lines.count == 3  else {
             throw Error.wrongLineCount(lines.count)
@@ -77,5 +77,25 @@ public final class TLEParser {
             firstLine: lines[1],
             secondLine: lines[2]
         )
+    }
+
+    public func parseCollection(_ data: Data, encoding: String.Encoding = .ascii) throws -> [TLE] {
+        guard !data.isEmpty else { throw Error.empty }
+        guard let dataString = String(data: data, encoding: encoding) else {
+            throw Error.encodingError
+        }
+
+        let lines = dataString
+            .split(whereSeparator: { elem in
+                elem.isNewline
+            })
+            .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
+            .filter { $0.count > 0 }
+
+        if lines.count % 3 != 0 { throw Error.invalidLineLength }
+        
+        let elements = lines.chunked(into: 3)
+        let tles = elements.map({ TLE(title: $0[0], firstLine: $0[1], secondLine: $0[2]) })
+        return tles
     }
 }
