@@ -25,7 +25,7 @@
 import Foundation
 
 /// A TLE parser
-public final class TLEParser {
+public struct TLEParser {
 
     /// Describes all the possible errors that can be thrown while parsing
     public enum Error: Swift.Error {
@@ -48,7 +48,7 @@ public final class TLEParser {
     /// - Parameter data: the buffer to parse
     /// - Returns: a TLE model
     /// - Throws: TLEParser.Error
-    public func parse(_ data: Data) throws -> TLE {
+    static public func parse(_ data: Data) throws -> TLE {
         guard !data.isEmpty else {
             throw Error.empty
         }
@@ -79,7 +79,7 @@ public final class TLEParser {
         )
     }
 
-    public func parseCollection(_ data: Data, encoding: String.Encoding = .ascii) throws -> [TLE] {
+    static public func parseCollection(_ data: Data, encoding: String.Encoding = .ascii) throws -> [TLE] {
         guard !data.isEmpty else { throw Error.empty }
         guard let dataString = String(data: data, encoding: encoding) else {
             throw Error.encodingError
