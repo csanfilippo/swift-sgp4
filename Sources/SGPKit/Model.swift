@@ -24,52 +24,78 @@
 
 import Foundation
 
-/// An object describing a TLE set
+/// A container for a Two‑Line Element (TLE) set.
+///
+/// A TLE consists of three lines: an optional title line followed by two
+/// data lines that are each exactly 69 characters long. This type stores the
+/// raw lines as parsed; it does not perform validation itself.
+///
+/// - Note: Use `TLEParser` to parse and validate a buffer into a `TLE`.
+/// - SeeAlso: `TLEParser`
 public struct TLE {
 
-	/// The title line of the TLE set
+	/// The title (line 0) of the TLE set. May be empty.
 	public let title: String
 
-	/// The first line of the TLE set
+	/// The first TLE data line (line 1). Expected length: 69 characters.
 	public let firstLine: String
 
-	/// The first line of the TLE set
+	/// The second TLE data line (line 2). Expected length: 69 characters.
 	public let secondLine: String
 
-	/// Create a TLE
+	/// Creates a `TLE` from its constituent lines.
 	///
 	/// - Parameters:
-	///   - title: The title of the TLE set
-	///   - firstLine: the first line of the TLE set
-	///   - secondLine: the second line of the TLE set
+	///   - title: The title (line 0) of the TLE set. Pass an empty string if absent.
+	///   - firstLine: The first TLE data line (line 1), typically 69 characters.
+	///   - secondLine: The second TLE data line (line 2), typically 69 characters.
+	/// - Important: This initializer does not validate line lengths or checksums.
+	///   Prefer using `TLEParser` for validated construction.
+	/// - Example:
+	/// ```swift
+	/// let tle = TLE(
+	///     title: "ISS (ZARYA)",
+	///     firstLine: "1 25544U 98067A   24060.51736111  .00016717  00000-0  30270-3 0  9991",
+	///     secondLine: "2 25544  51.6431  57.2546 0004487  58.7657  56.7570 15.49688911439444"
+	/// )
+	/// ```
 	public init(title: String, firstLine: String, secondLine: String) {
 		self.title = title
 		self.firstLine = firstLine
 		self.secondLine = secondLine
 	}
 
-	/// A convenience initializer for creating a TLE with an empty title
+	/// Creates a `TLE` with an empty title.
 	///
 	/// - Parameters:
-	///   - firstLine: the first line of the TLE set
-	///   - secondLine: the second line of the TLE set
+	///   - firstLine: The first TLE data line (line 1), typically 69 characters.
+	///   - secondLine: The second TLE data line (line 2), typically 69 characters.
+	/// - SeeAlso: `init(title:firstLine:secondLine:)`
 	public init(firstLine: String, secondLine: String) {
 		self.init(title: "", firstLine: firstLine, secondLine: secondLine)
 	}
 }
 
-/// A model describing a satellite using geodetic coordinates
+/// A snapshot of satellite state in geodetic coordinates (WGS‑84).
+///
+/// Values are expressed in common units suitable for display and basic
+/// computations. This type is a simple data container and performs no
+/// validation.
+///
+/// - Note: Latitude and longitude are in degrees. Altitude is measured
+///   along the ellipsoidal normal (geodetic height).
 public struct SatelliteData {
 
-	/// The geodetic latitude of the satellite
+	/// Geodetic latitude in degrees. Range: −90…90.
 	public let latitude: Double
 
-	/// The geodetic longitude of the satellite
+	/// Geodetic longitude in degrees. Range: −180…180.
 	public let longitude: Double
 
-	/// Satellite's speed expressed in km/h
+	/// Instantaneous speed magnitude in kilometers per hour (km/h).
 	public let speed: Double
 
-	/// The altitude expressed in km
+	/// Geodetic altitude above the WGS‑84 reference ellipsoid, in kilometers (km).
 	public let altitude: Double
 }
+

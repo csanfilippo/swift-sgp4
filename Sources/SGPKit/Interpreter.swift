@@ -36,19 +36,47 @@ private extension SGPKitOBJC.SatelliteData {
 	}
 }
 
-/// A class that calculates the satellite position, speed and altitude from a TLE set
+/// Interprets a TLE and computes satellite state using the SGP4 model.
+///
+/// This type bridges to the underlying `SGPKitOBJC` implementation to propagate
+/// a Two‑Line Element (TLE) to a specific moment in time and returns the result
+/// as geodetic latitude/longitude (degrees), altitude (km), and speed (km/h).
+///
+/// Instances are lightweight and stateless; you can create and reuse them across
+/// calls. Input validation is not performed here—use `TLEParser` to construct a
+/// validated `TLE`.
+///
+/// - SeeAlso: `TLE`, `SatelliteData`, `TLEParser`
 public final class TLEInterpreter {
 
+	/// Creates a new, stateless interpreter.
 	public init() {}
 
-	/// Returns a SatelliteData instance calculated from a TLE set
+	/// Computes satellite geodetic position, altitude, and speed for a given date.
 	///
-	/// - parameter tle: The TLE set
-	/// - parameter date: Date for which we want to obtain information about the satellite
-	/// - returns: A `SatelliteData` describing the satellite
+	/// Uses the SGP4 propagation model via `SGPKitOBJC` to evaluate the provided
+	/// TLE at the specified moment.
+	///
+	/// - Parameters:
+	///   - tle: The TLE to propagate. Prefer a value produced by `TLEParser`.
+	///   - date: The instant for which to compute the satellite state. `Date` is an
+	///           absolute timestamp; results correspond to that exact moment.
+	/// - Returns: A `SatelliteData` snapshot with:
+	///   - `latitude`/`longitude` in degrees (geodetic, WGS‑84),
+	///   - `altitude` in kilometers above the WGS‑84 ellipsoid,
+	///   - `speed` in kilometers per hour.
+	/// - Note: This method does not cache results and constructs a new SGP4 engine
+	///   per call. For repeated evaluations, reuse the interpreter instance.
+	/// - Example:
+	/// ```swift
+	/// let interpreter = TLEInterpreter()
+	/// let state = interpreter.satelliteData(from: tle, date: Date())
+	/// print(state.latitude, state.longitude)
+	/// ```
 	public func satelliteData(from tle: TLE, date: Date) -> SatelliteData {
 		let wrapper = SGP4Wrapper()
 		let result: SGPKitOBJC.SatelliteData = wrapper.getSatelliteData(from: tle.asTLEWrapper, date: date)
 		return result.asSatelliteData
 	}
 }
+

@@ -24,30 +24,54 @@
 
 import Foundation
 
-/// A TLE parser
+/// A parser for Two‑Line Element (TLE) sets.
+///
+/// This parser accepts an ASCII‑encoded buffer that contains exactly three lines:
+/// a title line followed by two TLE lines. It validates that each of the two
+/// TLE lines has a length of 69 characters, as specified by the TLE format, and
+/// returns a `TLE` value on success or throws a `TLEParser.Error` on failure.
 public final class TLEParser {
 
-    /// Describes all the possible errors that can be thrown while parsing
+    /// Errors that can be thrown while parsing a TLE set.
     public enum Error: Swift.Error {
 
-        /// Raised if the buffer is empty
+        /// The provided data buffer is empty.
         case empty
 
-        /// Raised if the buffer is not ASCII encoded
+        /// The provided data buffer is not ASCII‑encoded.
         case encodingError
 
-        /// Raised if the TLE set contains the wrong number of lines
+        /// The buffer contains the wrong number of lines. Expected 3 (title + 2 data lines).
         case wrongLineCount(Int)
 
-        /// Raised if the line length of the TLE is not 69
+        /// One or both TLE data lines do not have the required length of 69 characters.
         case invalidLineLength
     }
 
-    /// Parses a buffer into a TLE model
+    /// Parses an ASCII buffer containing a single TLE set into a `TLE` value.
     ///
-    /// - Parameter data: the buffer to parse
-    /// - Returns: a TLE model
-    /// - Throws: TLEParser.Error
+    /// The input must contain exactly three newline‑separated lines:
+    /// 1) a title line, 2) line 1 of the TLE, and 3) line 2 of the TLE. The two TLE lines
+    /// must each be exactly 69 characters long. Leading and trailing newlines in the buffer
+    /// are ignored.
+    ///
+    /// - Parameter data: The raw buffer to parse. Must be ASCII‑encoded.
+    /// - Returns: A fully‑validated `TLE` containing the title and both TLE lines.
+    /// - Throws: A `TLEParser.Error` describing the validation failure:
+    ///   - `.empty` if `data` is empty
+    ///   - `.encodingError` if `data` is not ASCII‑encoded
+    ///   - `.wrongLineCount` if the buffer does not contain exactly three lines
+    ///   - `.invalidLineLength` if either TLE line is not exactly 69 characters
+    ///
+    /// - Note: This method does not verify TLE checksums or semantic content beyond
+    ///   line count and line length; perform additional validation if required.
+    ///
+    /// - Example:
+    /// ```swift
+    /// let parser = TLEParser()
+    /// let tle = try parser.parse(tleData)
+    /// print(tle.title)
+    /// ```
     public func parse(_ data: Data) throws -> TLE {
         guard !data.isEmpty else {
             throw Error.empty
