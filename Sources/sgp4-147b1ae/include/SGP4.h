@@ -15,14 +15,16 @@
  */
 
 
-#ifndef SGP4_H_
-#define SGP4_H_
+#pragma once
 
 #include "Tle.h"
 #include "OrbitalElements.h"
 #include "Eci.h"
 #include "SatelliteException.h"
 #include "DecayedException.h"
+
+namespace libsgp4
+{
 
 /**
  * @mainpage
@@ -36,7 +38,7 @@
 class SGP4
 {
 public:
-    SGP4(const Tle& tle)
+    explicit SGP4(const Tle& tle)
         : elements_(tle)
     {
         Initialise();
@@ -255,4 +257,4 @@ private:
     bool use_deep_space_;
 };
 
-#endif
+} // namespace libsgp4

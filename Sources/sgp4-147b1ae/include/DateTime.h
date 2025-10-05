@@ -15,8 +15,7 @@
  */
 
 
-#ifndef DATETIME_H_
-#define DATETIME_H_
+#pragma once
 
 #include <iomanip>
 #include <iostream>
@@ -27,6 +26,8 @@
 #include "TimeSpan.h"
 #include "Util.h"
 
+namespace libsgp4
+{
 namespace
 {
     static int daysInMonth[2][13] = {
@@ -60,7 +61,7 @@ public:
      * Constructor
      * @param[in] ticks raw tick value
      */
-    DateTime(int64_t ticks)
+    explicit DateTime(int64_t ticks)
         : m_encoded(ticks)
     {
     }
@@ -103,6 +104,21 @@ public:
 
     /**
      * Constructor
+     * @param[in] year the year
+     * @param[in] month the month
+     * @param[in] day the day
+     * @param[in] hour the hour
+     * @param[in] minute the minute
+     * @param[in] second the second
+     * @param[in] microsecond the microsecond
+     */
+    DateTime(int year, int month, int day, int hour, int minute, int second, int microsecond)
+    {
+        Initialise(year, month, day, hour, minute, second, microsecond);
+    }
+
+    /**
+     * Initialise to the given data and time.
      * @param[in] year the year
      * @param[in] month the month
      * @param[in] day the day
@@ -434,7 +450,7 @@ public:
 
     DateTime AddMicroseconds(const double microseconds) const
     {
-        int64_t ticks = static_cast<int64_t>(microseconds * TicksPerMicrosecond);
+        auto ticks = static_cast<int64_t>(microseconds * TicksPerMicrosecond);
         return AddTicks(ticks);
     }
 
@@ -587,7 +603,7 @@ public:
      */
     double ToJulian() const
     {
-        TimeSpan ts = TimeSpan(Ticks());
+        auto ts = TimeSpan(Ticks());
         return ts.TotalDays() + 1721425.5;
     }
 
@@ -649,7 +665,7 @@ public:
     }
 
 private:
-    int64_t m_encoded;
+    int64_t m_encoded{};
 };
 
 inline std::ostream& operator<<(std::ostream& strm, const DateTime& dt)
@@ -702,4 +718,4 @@ inline bool operator<=(const DateTime& dt1, const DateTime& dt2)
     return (dt1.Compare(dt2) <= 0);
 }
 
-#endif
+} // namespace libsgp4

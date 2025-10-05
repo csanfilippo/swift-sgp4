@@ -20,7 +20,7 @@ let package = Package(
 			dependencies: ["SGPKitOBJC"]),
 		.target(
 			name: "SGPKitCPP",
-			path: "Sources/sgp4-f5cb54b"
+			path: "Sources/sgp4-147b1ae"
 		),
 		.target(
 			name: "SGPKitOBJC",

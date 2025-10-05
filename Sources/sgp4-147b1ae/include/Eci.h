@@ -15,12 +15,14 @@
  */
 
 
-#ifndef ECI_H_
-#define ECI_H_
+#pragma once
 
 #include "CoordGeodetic.h"
 #include "Vector.h"
 #include "DateTime.h"
+
+namespace libsgp4
+{
 
 /**
  * @brief Stores an Earth-centered inertial position for a particular time.
@@ -141,4 +143,4 @@ private:
     Vector m_velocity;
 };
 
-#endif
+} // namespace libsgp4

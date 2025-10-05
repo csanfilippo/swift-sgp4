@@ -15,14 +15,16 @@
  */
 
 
-#ifndef COORDGEODETIC_H_
-#define COORDGEODETIC_H_
+#pragma once
 
 #include "Util.h"
 
 #include <string>
 #include <sstream>
 #include <iomanip>
+
+namespace libsgp4
+{
 
 /**
  * @brief Stores a geodetic location (latitude, longitude, altitude).
@@ -35,12 +37,7 @@ public:
     /**
      * Default constructor
      */
-    CoordGeodetic()
-        : latitude(0.0),
-        longitude(0.0),
-        altitude(0.0)
-    {
-    }
+    CoordGeodetic() = default;
 
     /**
      * Constructor
@@ -109,11 +106,11 @@ public:
     }
 
     /** latitude in radians (-PI >= latitude < PI) */
-    double latitude;
+    double latitude{};
     /** latitude in radians (-PI/2 >= latitude <= PI/2) */
-    double longitude;
+    double longitude{};
     /** altitude in kilometers */
-    double altitude;
+    double altitude{};
 };
 
 /**
@@ -126,4 +123,4 @@ inline std::ostream& operator<<(std::ostream& strm, const CoordGeodetic& g)
     return strm << g.ToString();
 }
 
-#endif
+} // namespace libsgp4

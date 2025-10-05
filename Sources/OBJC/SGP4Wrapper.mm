@@ -31,6 +31,7 @@
 #import <CoordGeodetic.h>
 #import <Eci.h>
 using namespace std;
+using namespace libsgp4;
 
 @interface SGP4Wrapper()
 - (DateTime) dateTimeFrom:(NSDate*) date;

@@ -17,8 +17,10 @@
 
 #include "Tle.h"
 
-#include <locale> 
+#include <locale>
 
+namespace libsgp4
+{
 namespace
 {
     static const unsigned int TLE1_COL_NORADNUM = 2;
@@ -144,9 +146,13 @@ void Tle::Initialize()
                 TLE2_LEN_REVATEPOCH), orbit_number_);
     
     if (year < 57)
+    {
         year += 2000;
+    }
     else
+    {
         year += 1900;
+    }
 
     epoch_ = DateTime(year, day);
 }
@@ -172,18 +178,18 @@ void Tle::ExtractInteger(const std::string& str, unsigned int& val)
     bool found_digit = false;
     unsigned int temp = 0;
 
-    for (std::string::const_iterator i = str.begin(); i != str.end(); ++i)
+    for (auto& i : str)
     {
-        if (isdigit(*i))
+        if (isdigit(i))
         {
             found_digit = true;
-            temp = (temp * 10) + static_cast<unsigned int>(*i - '0');
+            temp = (temp * 10) + static_cast<unsigned int>(i - '0');
         }
         else if (found_digit)
         {
             throw TleException("Unexpected non digit");
         }
-        else if (*i != ' ')
+        else if (i != ' ')
         {
             throw TleException("Invalid character");
         }
@@ -366,3 +372,5 @@ void Tle::ExtractExponential(const std::string& str, double& val)
         throw TleException("Failed to convert value to double");
     }
 }
+
+} // namespace libsgp4

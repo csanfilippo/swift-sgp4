@@ -15,10 +15,12 @@
  */
 
 
-#ifndef GLOBALS_H_
-#define GLOBALS_H_
+#pragma once
 
 #include <cmath>
+
+namespace libsgp4
+{
 
 const double kAE = 1.0;
 const double kQ0 = 120.0;
@@ -72,5 +74,4 @@ const double kHOURS_PER_DAY = 24.0;
 
 const double kA3OVK2 = -kXJ3 / kCK2 * kAE * kAE * kAE;
 
-#endif
-
+} // namespace libsgp4

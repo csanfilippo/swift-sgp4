@@ -15,14 +15,16 @@
  */
 
 
-#ifndef TIMESPAN_H_
-#define TIMESPAN_H_
+#pragma once
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <cmath>
-#include <stdint.h>
+#include <cstdint>
+
+namespace libsgp4
+{
 
 namespace
 {
@@ -51,7 +53,7 @@ namespace
 class TimeSpan
 {
 public:
-    TimeSpan(int64_t ticks)
+    explicit TimeSpan(int64_t ticks)
         : m_ticks(ticks)
     {
     }
@@ -195,7 +197,7 @@ public:
     }
 
 private:
-    int64_t m_ticks;
+    int64_t m_ticks{};
 
     void CalculateTicks(int days,
             int hours,
@@ -204,7 +206,7 @@ private:
             int microseconds)
     {
         m_ticks = days * TicksPerDay +
-            (hours * 3600LL + minutes * 60LL + seconds) * TicksPerSecond + 
+            (hours * 3600LL + minutes * 60LL + seconds) * TicksPerSecond +
             microseconds * TicksPerMicrosecond;
     }
 };
@@ -254,4 +256,4 @@ inline bool operator<=(const TimeSpan& ts1, const TimeSpan& ts2)
     return (ts1.Compare(ts2) <= 0);
 }
 
-#endif
+} // namespace libsgp4

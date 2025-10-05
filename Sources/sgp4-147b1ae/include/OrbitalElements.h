@@ -15,11 +15,13 @@
  */
 
 
-#ifndef ORBITALELEMENTS_H_
-#define ORBITALELEMENTS_H_
+#pragma once
 
 #include "Util.h"
 #include "DateTime.h"
+
+namespace libsgp4
+{
 
 class Tle;
 
@@ -29,7 +31,7 @@ class Tle;
 class OrbitalElements
 {
 public:
-    OrbitalElements(const Tle& tle);
+    explicit OrbitalElements(const Tle& tle);
 
     /*
      * XMO
@@ -142,4 +144,4 @@ private:
     DateTime epoch_;
 };
 
-#endif
+} // namespace libsgp4

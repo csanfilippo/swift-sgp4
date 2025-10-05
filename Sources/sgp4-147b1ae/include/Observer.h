@@ -15,11 +15,13 @@
  */
 
 
-#ifndef OBSERVER_H_
-#define OBSERVER_H_
+#pragma once
 
 #include "CoordGeodetic.h"
 #include "Eci.h"
+
+namespace libsgp4
+{
 
 class DateTime;
 struct CoordTopocentric;
@@ -48,7 +50,7 @@ public:
      * Constructor
      * @param[in] geo the observers position
      */
-    Observer(const CoordGeodetic &geo)
+    explicit Observer(const CoordGeodetic &geo)
         : m_geo(geo)
         , m_eci(DateTime(), geo)
     {
@@ -98,5 +100,4 @@ private:
     Eci m_eci;
 };
 
-#endif
-
+} // namespace libsgp4

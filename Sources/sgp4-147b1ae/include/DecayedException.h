@@ -15,14 +15,16 @@
  */
 
 
-#ifndef DECAYEDEXCEPTION_H_
-#define DECAYEDEXCEPTION_H_
+#pragma once
 
 #include "DateTime.h"
 #include "Vector.h"
 
 #include <stdexcept>
 #include <string>
+
+namespace libsgp4
+{
 
 /**
  * @brief The exception that the SGP4 class throws when a satellite decays.
@@ -74,4 +76,4 @@ private:
     Vector _vel;
 };
 
-#endif
+} // namespace libsgp4
