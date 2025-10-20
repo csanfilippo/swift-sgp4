@@ -32,7 +32,7 @@ import Foundation
 ///
 /// - Note: Use `TLEParser` to parse and validate a buffer into a `TLE`.
 /// - SeeAlso: `TLEParser`
-public struct TLE {
+public struct TLE: Sendable {
 
 	/// The title (line 0) of the TLE set. May be empty.
 	public let title: String
@@ -84,7 +84,7 @@ public struct TLE {
 ///
 /// - Note: Latitude and longitude are in degrees. Altitude is measured
 ///   along the ellipsoidal normal (geodetic height).
-public struct SatelliteData {
+public struct SatelliteData: Sendable {
 
 	/// Geodetic latitude in degrees. Range: −90…90.
 	public let latitude: Double

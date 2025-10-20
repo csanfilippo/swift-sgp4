@@ -1,4 +1,4 @@
-// swift-tools-version: 5.5
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -38,6 +38,7 @@ let package = Package(
 			]
 		)
 	],
+    swiftLanguageModes: [.v6]
 )
 
 #if swift(>=5.6)

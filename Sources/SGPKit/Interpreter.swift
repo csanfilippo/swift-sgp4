@@ -47,7 +47,7 @@ private extension SGPKitOBJC.SatelliteData {
 /// validated `TLE`.
 ///
 /// - SeeAlso: `TLE`, `SatelliteData`, `TLEParser`
-public final class TLEInterpreter {
+public final class TLEInterpreter: Sendable {
 
 	/// Creates a new, stateless interpreter.
 	public init() {}

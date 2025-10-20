@@ -30,7 +30,7 @@ import Foundation
 /// a title line followed by two TLE lines. It validates that each of the two
 /// TLE lines has a length of 69 characters, as specified by the TLE format, and
 /// returns a `TLE` value on success or throws a `TLEParser.Error` on failure.
-public final class TLEParser {
+public final class TLEParser: Sendable {
 
     /// Errors that can be thrown while parsing a TLE set.
     public enum Error: Swift.Error {
