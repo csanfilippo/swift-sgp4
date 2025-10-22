@@ -22,90 +22,56 @@
  SOFTWARE.
  */
 
-import Quick
-import Nimble
+import Testing
 import Foundation
 
 @testable import SGPKit
 
-final class TLEParserTests: QuickSpec {
-    override func spec() {
-        describe("TLEParser") {
-            context("when parsing an empty buffer") {
-                it("should throw an exception") {
-                    let emptyBuffer = Data()
-                    let parser = TLEParser()
+@Suite("TLEParser")
+struct TLEParserTestsSuite {
+    @Test func `when parsing an empty buffer should throw an exception`() async throws {
+        let emptyBuffer = Data()
+        let parser = TLEParser()
 
-                    expect { try parser.parse(emptyBuffer) }.to(throwError(TLEParser.Error.empty))
-                }
-            }
-
-            context("when parsing a not empty buffer") {
-                context("if the buffer contains valid data") {
-                    it("should return a TLE model") {
-                        let parser = TLEParser()
-                        let validData = self.loadValidTLEData()
-
-						let expectedTLE = TLE(
-                            title: "ISS (ZARYA)",
-                            firstLine: "1 11416U 79057A   80003.44366214  .00000727  00000-0  33454-3 0   878",
-                            secondLine: "2 11416  98.7309  35.7226 0013335  92.0280 268.2428 14.22474848 27074"
-                        )
-
-                        do {
-                            let tle = try parser.parse(validData)
-                            expect(tle.title).to(equal(expectedTLE.title))
-                            expect(tle.firstLine).to(equal(expectedTLE.firstLine))
-                            expect(tle.secondLine).to(equal(expectedTLE.secondLine))
-                        } catch {
-                            fail()
-                        }
-                    }
-                }
-
-                context("if the encoded TLE doesn't have 3 lines") {
-                    it("should raise an exception") {
-                        let parser = TLEParser()
-						let invalidData = self.loadOneLineTLEData()
-
-                        do {
-                            _ = try parser.parse(invalidData)
-                            fail()
-                        } catch let tleParserError as TLEParser.Error {
-                            if case let TLEParser.Error.wrongLineCount(count) = tleParserError {
-                                expect(count).to(equal(1))
-                            } else {
-                                fail()
-                            }
-                        } catch {
-                            fail()
-                        }
-                    }
-                }
-
-                context("if not all the lines of the TLE have 69 characters") {
-                    it("should raise an exception") {
-                        let parser = TLEParser()
-						let invalidData = self.loadInvalidLineLengthTLEData()
-
-                        do {
-                            _ = try parser.parse(invalidData)
-                            fail()
-                        } catch let tleParserError as TLEParser.Error {
-                            if case TLEParser.Error.invalidLineLength = tleParserError {
-                                _ = succeed()
-                            } else {
-                                fail()
-                            }
-                        } catch {
-                            fail()
-                        }
-                    }
-                }
-            }
+        #expect(throws: TLEParser.Error.empty) {
+            try parser.parse(emptyBuffer)
         }
     }
+    
+    @Test func `when parsing a not empty buffer if the buffer contains valid data should return a TLE model`() async throws {
+        let parser = TLEParser()
+        let validData = self.loadValidTLEData()
 
+        let expectedTLE = TLE(
+            title: "ISS (ZARYA)",
+            firstLine: "1 11416U 79057A   80003.44366214  .00000727  00000-0  33454-3 0   878",
+            secondLine: "2 11416  98.7309  35.7226 0013335  92.0280 268.2428 14.22474848 27074"
+        )
+        
+        let tle = try parser.parse(validData)
+        #expect(tle.title == expectedTLE.title)
+        #expect(tle.firstLine == expectedTLE.firstLine)
+        #expect(tle.secondLine == expectedTLE.secondLine)
+    }
+    
+    @Test func `when parsing a not empty buffer if the buffer if the encoded TLE doesn't have 3 lines should raise an exception`() async throws {
+        let parser = TLEParser()
+        let invalidData = self.loadOneLineTLEData()
+        
+        #expect(throws: TLEParser.Error.wrongLineCount(1)) {
+            _ = try parser.parse(invalidData)
+        }
+    }
+    
+    @Test func `when parsing a not empty buffer if not all the lines of the TLE have 69 characters should raise an exception`() async throws {
+        let parser = TLEParser()
+        let invalidData = self.loadInvalidLineLengthTLEData()
+        
+        #expect(throws: TLEParser.Error.invalidLineLength) {
+            _ = try parser.parse(invalidData)
+        }
+    }
+    
     private func loadValidTLEData() -> Data {
         let url = Bundle.module.url(
             forResource: "valid_tle",

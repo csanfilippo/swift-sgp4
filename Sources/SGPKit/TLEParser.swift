@@ -33,7 +33,7 @@ import Foundation
 public final class TLEParser: Sendable {
 
     /// Errors that can be thrown while parsing a TLE set.
-    public enum Error: Swift.Error {
+    public enum Error: Swift.Error, Equatable {
 
         /// The provided data buffer is empty.
         case empty

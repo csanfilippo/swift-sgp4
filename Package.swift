@@ -11,8 +11,6 @@ let package = Package(
 			targets: ["SGPKit"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/Quick/Nimble", .upToNextMajor(from: "10.0.0")),
-		.package(url: "https://github.com/Quick/Quick", .upToNextMajor(from: "5.0.0")),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0")
 	],
 	targets: [
@@ -32,9 +30,7 @@ let package = Package(
 		.testTarget(
 			name: "SGPKitTests",
 			dependencies: [
-				"SGPKit",
-				.product(name: "Nimble", package: "Nimble"),
-				.product(name: "Quick", package: "Quick")
+				"SGPKit"
 			],
 			resources: [
 				.copy("Mocks")
