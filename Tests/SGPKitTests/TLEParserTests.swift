@@ -42,7 +42,7 @@ struct TLEParserTestsSuite {
         let parser = TLEParser()
         let validData = self.loadValidTLEData()
 
-        let expectedTLE = TLE(
+        let expectedTLE = try TLE(
             title: "ISS (ZARYA)",
             firstLine: "1 11416U 79057A   80003.44366214  .00000727  00000-0  33454-3 0   878",
             secondLine: "2 11416  98.7309  35.7226 0013335  92.0280 268.2428 14.22474848 27074"

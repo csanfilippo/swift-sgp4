@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2022 Calogero Sanfilippo
+ Copyright (c) 2022-2025 Calogero Sanfilippo
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,23 @@
 
 import Foundation
 
+/// Errors that can occur when constructing or validating a TLE.
+public enum TLEError: Error {
+    /// Thrown when either of the two data lines is empty.
+    case linesCannoteBeEmpty
+    /// Thrown when a data line is not exactly 69 characters long.
+    case linesMustBeSixNineCharactersLong
+}
+
 /// A container for a Two‑Line Element (TLE) set.
 ///
 /// A TLE consists of three lines: an optional title line followed by two
-/// data lines that are each exactly 69 characters long. This type stores the
-/// raw lines as parsed; it does not perform validation itself.
+/// data lines that are each exactly 69 characters long.
+/// This type now validates basic structural rules (non‑empty lines and exact
+/// 69‑character length) during initialization and throws on failure.
 ///
-/// - Note: Use `TLEParser` to parse and validate a buffer into a `TLE`.
+/// - Note: Use `TLEParser` to parse a buffer into a `TLE` and perform
+///   additional domain checks (for example, checksums).
 /// - SeeAlso: `TLEParser`
 public struct TLE: Sendable {
 
@@ -43,42 +53,54 @@ public struct TLE: Sendable {
 	/// The second TLE data line (line 2). Expected length: 69 characters.
 	public let secondLine: String
 
-	/// Creates a `TLE` from its constituent lines.
-	///
-	/// - Parameters:
-	///   - title: The title (line 0) of the TLE set. Pass an empty string if absent.
-	///   - firstLine: The first TLE data line (line 1), typically 69 characters.
-	///   - secondLine: The second TLE data line (line 2), typically 69 characters.
-	/// - Important: This initializer does not validate line lengths or checksums.
-	///   Prefer using `TLEParser` for validated construction.
-	/// - Example:
-	/// ```swift
-	/// let tle = TLE(
-	///     title: "ISS (ZARYA)",
-	///     firstLine: "1 25544U 98067A   24060.51736111  .00016717  00000-0  30270-3 0  9991",
-	///     secondLine: "2 25544  51.6431  57.2546 0004487  58.7657  56.7570 15.49688911439444"
-	/// )
-	/// ```
-	public init(title: String, firstLine: String, secondLine: String) {
+    /// Creates a validated `TLE` from its constituent lines.
+    ///
+    /// - Parameters:
+    ///   - title: The title (line 0) of the TLE set. Pass an empty string if absent.
+    ///   - firstLine: The first TLE data line (line 1). Must be exactly 69 characters.
+    ///   - secondLine: The second TLE data line (line 2). Must be exactly 69 characters.
+    /// - Throws: `TLEError.linesCannoteBeEmpty` if any data line is empty, or
+    ///   `TLEError.linesMustBeSixNineCharactersLong` if a line is not 69 characters long.
+    /// - Important: Only basic structural checks are performed here. Prefer using
+    ///   `TLEParser` for checksum and field‑level validation.
+    /// - Example:
+    /// ```swift
+    /// let tle = try TLE(
+    ///     title: "ISS (ZARYA)",
+    ///     firstLine: "1 25544U 98067A   24060.51736111  .00016717  00000-0  30270-3 0  9991",
+    ///     secondLine: "2 25544  51.6431  57.2546 0004487  58.7657  56.7570 15.49688911439444"
+    /// )
+    /// ```
+	public init(title: String, firstLine: String, secondLine: String) throws {
+        
+        guard !firstLine.isEmpty && !secondLine.isEmpty else {
+            throw TLEError.linesCannoteBeEmpty
+        }
+        
+        guard firstLine.count == 69 && secondLine.count == 69 else {
+            throw TLEError.linesMustBeSixNineCharactersLong
+        }
+        
 		self.title = title
 		self.firstLine = firstLine
 		self.secondLine = secondLine
 	}
 
-	/// Creates a `TLE` with an empty title.
-	///
-	/// - Parameters:
-	///   - firstLine: The first TLE data line (line 1), typically 69 characters.
-	///   - secondLine: The second TLE data line (line 2), typically 69 characters.
-	/// - SeeAlso: `init(title:firstLine:secondLine:)`
-	public init(firstLine: String, secondLine: String) {
-		self.init(title: "", firstLine: firstLine, secondLine: secondLine)
+    /// Creates a validated `TLE` with an empty title.
+    ///
+    /// - Parameters:
+    ///   - firstLine: The first TLE data line (line 1). Must be exactly 69 characters.
+    ///   - secondLine: The second TLE data line (line 2). Must be exactly 69 characters.
+    /// - Throws: The same errors as `init(title:firstLine:secondLine:)`.
+    /// - SeeAlso: `init(title:firstLine:secondLine:)`
+	public init(firstLine: String, secondLine: String) throws {
+		try self.init(title: "", firstLine: firstLine, secondLine: secondLine)
 	}
 }
 
 /// A snapshot of satellite state in geodetic coordinates (WGS‑84).
 ///
-/// Values are expressed in common units suitable for display and basic
+/// Values are expressed in display‑friendly units suitable for UI and basic
 /// computations. This type is a simple data container and performs no
 /// validation.
 ///

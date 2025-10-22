@@ -40,7 +40,7 @@ final class TLEInterpreterSpec {
     @Test func `it should return the expected satellite data`() throws {
         let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
         let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
-        let tle = TLE(title: "", firstLine: firstLine, secondLine: secondLine)
+        let tle = try TLE(title: "", firstLine: firstLine, secondLine: secondLine)
         let interpreter = TLEInterpreter()
         let data = interpreter.satelliteData(from: tle, date: try self.generateTestDate())
 

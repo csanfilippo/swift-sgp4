@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2022 Calogero Sanfilippo
+ Copyright (c) 2022-2025 Calogero Sanfilippo
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,11 @@ import Foundation
 /// returns a `TLE` value on success or throws a `TLEParser.Error` on failure.
 public final class TLEParser: Sendable {
 
-    /// Errors that can be thrown while parsing a TLE set.
+    /// Parser errors emitted while converting an ASCII buffer into a `TLE`.
+    ///
+    /// These errors describe concrete validation failures encountered during
+    /// parsing, including empty input, non‑ASCII encoding, incorrect line
+    /// counts, invalid line lengths, and unexpected construction failures.
     public enum Error: Swift.Error, Equatable {
 
         /// The provided data buffer is empty.
@@ -41,11 +45,14 @@ public final class TLEParser: Sendable {
         /// The provided data buffer is not ASCII‑encoded.
         case encodingError
 
-        /// The buffer contains the wrong number of lines. Expected 3 (title + 2 data lines).
+        /// The buffer contains the wrong number of lines (expected 3: title + 2 data lines).
         case wrongLineCount(Int)
 
-        /// One or both TLE data lines do not have the required length of 69 characters.
+        /// One or both TLE data lines are not exactly 69 characters in length.
         case invalidLineLength
+        
+        /// An unexpected failure occurred while constructing the `TLE` (e.g., a non‑length validation error).
+        case unexpectedError
     }
 
     /// Parses an ASCII buffer containing a single TLE set into a `TLE` value.
@@ -60,8 +67,9 @@ public final class TLEParser: Sendable {
     /// - Throws: A `TLEParser.Error` describing the validation failure:
     ///   - `.empty` if `data` is empty
     ///   - `.encodingError` if `data` is not ASCII‑encoded
-    ///   - `.wrongLineCount` if the buffer does not contain exactly three lines
+    ///   - `.wrongLineCount` if the buffer does not contain exactly three lines (title + 2 data lines)
     ///   - `.invalidLineLength` if either TLE line is not exactly 69 characters
+    ///   - `.unexpectedError` for any other failure encountered while constructing the `TLE`
     ///
     /// - Note: This method does not verify TLE checksums or semantic content beyond
     ///   line count and line length; perform additional validation if required.
@@ -89,17 +97,18 @@ public final class TLEParser: Sendable {
         guard lines.count == 3  else {
             throw Error.wrongLineCount(lines.count)
         }
-
-		let allSatisfyingLineLength = lines[1...].allSatisfy { $0.count == 69 }
-
-        guard allSatisfyingLineLength else {
+        
+        do {
+            return try TLE(
+                title: lines[0],
+                firstLine: lines[1],
+                secondLine: lines[2]
+            )
+        } catch TLEError.linesMustBeSixNineCharactersLong {
             throw Error.invalidLineLength
+        } catch {
+            throw Error.unexpectedError
         }
-
-        return TLE(
-            title: lines[0],
-            firstLine: lines[1],
-            secondLine: lines[2]
-        )
     }
 }
+
