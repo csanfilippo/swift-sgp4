@@ -42,7 +42,7 @@ final class TLEInterpreterSpec {
         let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
         let tle = try TLE(title: "", firstLine: firstLine, secondLine: secondLine)
         let interpreter = TLEInterpreter()
-        let data = interpreter.satelliteData(from: tle, date: try self.generateTestDate())
+        let data = try interpreter.satelliteData(from: tle, date: try self.generateTestDate())
 
         let expectedLatitude = 45.2893067
         let expectedLongitude = -136.62764

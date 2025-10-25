@@ -36,21 +36,41 @@ private extension SGPKitOBJC.SatelliteData {
 	}
 }
 
-/// Interprets a TLE and computes satellite state using the SGP4 model.
+/// A lightweight interpreter that propagates a TLE using the SGP4 model.
 ///
-/// This type bridges to the underlying `SGPKitOBJC` implementation to propagate
-/// a Two‑Line Element (TLE) to a specific moment in time and returns the result
-/// as geodetic latitude/longitude (degrees), altitude (km), and speed (km/h).
+/// `TLEInterpreter` bridges to the underlying `SGPKitOBJC` implementation to
+/// propagate a Two‑Line Element (TLE) to a specific moment in time and return
+/// the result as geodetic latitude/longitude (degrees), altitude (km), and
+/// speed (km/h).
 ///
-/// Instances are lightweight and stateless; you can create and reuse them across
-/// calls. Input validation is not performed here—use `TLEParser` to construct a
-/// validated `TLE`.
+/// Instances are stateless and inexpensive to create; you can construct and
+/// reuse them across multiple calls. Input validation is not performed here—use
+/// `TLEParser` to construct a validated `TLE`.
+///
+/// Thread safety
+///  - This type is immutable and `Sendable`. Create and use instances from any
+///    concurrency context. Each call constructs its own SGP4 engine internally.
+///
+/// Performance
+///  - This API does not cache results. For repeated evaluations at different
+///    times, call the method as needed or implement your own memoization if
+///    appropriate for your use case.
 ///
 /// - SeeAlso: `TLE`, `SatelliteData`, `TLEParser`
 public final class TLEInterpreter: Sendable {
-
-	/// Creates a new, stateless interpreter.
-	public init() {}
+    
+    /// Errors that can occur while interpreting a TLE.
+    ///
+    /// These errors map from underlying `SGPKitOBJC` failures into a
+    /// Swift-friendly representation.
+    public enum Error: Swift.Error, Equatable, Sendable {
+        /// The provided TLE is invalid or cannot be parsed by the propagation engine.
+        case tle
+        /// The satellite state could not be computed due to a model or state error.
+        case satellite
+        /// An unspecified error occurred.
+        case generic
+    }
 
 	/// Computes satellite geodetic position, altitude, and speed for a given date.
 	///
@@ -65,18 +85,41 @@ public final class TLEInterpreter: Sendable {
 	///   - `latitude`/`longitude` in degrees (geodetic, WGS‑84),
 	///   - `altitude` in kilometers above the WGS‑84 ellipsoid,
 	///   - `speed` in kilometers per hour.
-	/// - Note: This method does not cache results and constructs a new SGP4 engine
-	///   per call. For repeated evaluations, reuse the interpreter instance.
+	/// - Throws: ``TLEInterpreter/Error`` when propagation fails.
+	///   Specifically, this method throws:
+	///   - ``TLEInterpreter/Error/tle`` when the TLE is invalid or unsupported.
+	///   - ``TLEInterpreter/Error/satellite`` when the satellite state cannot be computed.
+	///   - ``TLEInterpreter/Error/generic`` for any other unspecified failure.
+	///
+	/// - Discussion: This method constructs a new SGP4 engine on each call and does
+	///   not cache results. If you need to evaluate many times in quick succession,
+	///   consider reusing the interpreter instance; it is stateless and `Sendable`.
+	///
 	/// - Example:
 	/// ```swift
 	/// let interpreter = TLEInterpreter()
-	/// let state = interpreter.satelliteData(from: tle, date: Date())
-	/// print(state.latitude, state.longitude)
+	/// let tle = try TLEParser().parse(lines: [line1, line2])
+	/// let now = Date()
+	/// let state = try interpreter.satelliteData(from: tle, date: now)
+	/// print(state.latitude, state.longitude, state.altitude, state.speed)
 	/// ```
-	public func satelliteData(from tle: TLE, date: Date) -> SatelliteData {
-		let wrapper = SGP4Wrapper()
-		let result: SGPKitOBJC.SatelliteData = wrapper.getSatelliteData(from: tle.asTLEWrapper, date: date)
-		return result.asSatelliteData
+	public func satelliteData(from tle: TLE, date: Date) throws -> SatelliteData {
+        do {
+            let wrapper = SGP4Wrapper()
+            let result: SGPKitOBJC.SatelliteData = try wrapper.getSatelliteData(from: tle.asTLEWrapper, date: date)
+            return result.asSatelliteData
+        } catch let error as SGPKitError {
+            switch error.code {
+            case .TLE_ERROR:
+                throw Error.tle
+            case .SATELLITE_ERROR:
+                throw Error.satellite
+            case .GENERIC_ERROR:
+                throw Error.generic
+            @unknown default:
+                throw Error.generic
+            }
+        }
 	}
 }
 

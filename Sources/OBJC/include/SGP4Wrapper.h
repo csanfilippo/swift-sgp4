@@ -28,9 +28,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+const NSErrorDomain SGPKitErrorDomain = @"it.calogerosanfilippo.SPGKitError";
+
+typedef NS_ERROR_ENUM(SGPKitErrorDomain, SGPKitErrorCode) {
+    TLE_ERROR = 0,
+    SATELLITE_ERROR = 1,
+    GENERIC_ERROR = 2
+};
+
 @interface SGP4Wrapper : NSObject
 
-- (SatelliteData* _Nonnull) getSatelliteDataFrom:(TLEWrapper* _Nonnull) tle date:(NSDate* _Nonnull) date;
+- (SatelliteData* _Nullable) getSatelliteDataFrom:(TLEWrapper* _Nonnull) tle date:(NSDate* _Nonnull) date error: (NSError **) error;
 
 @end
 

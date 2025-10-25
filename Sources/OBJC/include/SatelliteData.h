@@ -24,6 +24,8 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface SatelliteData : NSObject
 @property(readonly) double latitude;
 @property(readonly) double longitude;
@@ -33,3 +35,5 @@
 - (instancetype) initWithLatitude:(double) latitude longitude:(double) longitude speed:(double) speed altitude:(double) altitude;
 
 @end
+
+NS_ASSUME_NONNULL_END

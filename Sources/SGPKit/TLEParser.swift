@@ -90,9 +90,9 @@ public final class TLEParser: Sendable {
         }
 
         let lines = string
-            .trimmingCharacters(in: .newlines)
-			.split(separator: "\n")
-			.map({ String($0) })
+            .split(whereSeparator: { $0.isNewline })
+            .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
+            .filter { $0.count > 0 }
 
         guard lines.count == 3  else {
             throw Error.wrongLineCount(lines.count)

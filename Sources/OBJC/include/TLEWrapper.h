@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonnull, nonatomic, readonly) NSString *firstLine;
 @property(nonnull, nonatomic, readonly) NSString *secondLine;
 
-- (nonnull instancetype) initWithTitle:(NSString*_Nonnull) title firstLine:(NSString* _Nonnull) firstLine secondLine:(NSString* _Nonnull) secondLine;
+- (instancetype) initWithTitle:(NSString*) title firstLine:(NSString*) firstLine secondLine:(NSString*) secondLine;
 
 @end
 

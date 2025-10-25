@@ -41,15 +41,38 @@ using namespace libsgp4;
 
 @implementation SGP4Wrapper
 
-- (SatelliteData*) getSatelliteDataFrom:(TLEWrapper*) tleWrapper date:(NSDate*) date {
+- (SatelliteData*) getSatelliteDataFrom:(TLEWrapper*) tleWrapper date:(NSDate*) date error:(NSError *__autoreleasing  _Nullable * _Nullable)error {
 
-	SGP4 sgp4 = [self getSGP4From:tleWrapper];
+    try {
+        SGP4 sgp4 = [self getSGP4From:tleWrapper];
 
-    DateTime currentTime = [self dateTimeFrom: date];
+        DateTime currentTime = [self dateTimeFrom: date];
 
-	SatelliteData *data = [self issDataFromSgp4:sgp4 Date:currentTime];
+        SatelliteData *data = [self issDataFromSgp4:sgp4 Date:currentTime];
 
-	return data;
+        return data;
+    } catch (const TleException& e){
+        const char *cause = e.what();
+        if (error) {
+            *error = [[self class] errorWithCode:TLE_ERROR cause:e.what()];
+        }
+        
+        return nil;
+    } catch (const SatelliteException& e) {
+        
+        if (error) {
+            *error = [[self class] errorWithCode:SATELLITE_ERROR cause:e.what()];
+        }
+        
+        return nil;
+    } catch (exception& e) {
+        
+        if (error) {
+            *error = [[self class] errorWithCode:GENERIC_ERROR cause:e.what()];
+        }
+        
+        return nil;
+    }
 }
 
 - (SGP4) getSGP4From:(TLEWrapper*) tleWrapper {
@@ -86,6 +109,12 @@ using namespace libsgp4;
 
 	double velocity = eci.Velocity().Magnitude() * 3600.0;
 	return [[SatelliteData alloc] initWithLatitude:geo.latitude * 180.0 / M_PI longitude:geo.longitude * 180.0 / M_PI speed:velocity altitude:geo.altitude];
+}
+
++ (NSError*) errorWithCode:(SGPKitErrorCode) code cause:(const char*) cause {
+    return [NSError errorWithDomain:SGPKitErrorDomain code:code userInfo:@{
+        NSLocalizedDescriptionKey: @(cause)
+    }];
 }
 
 @end
