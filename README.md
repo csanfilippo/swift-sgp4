@@ -28,6 +28,7 @@ print(data.latitude)   // degrees
 print(data.longitude)  // degrees
 print(data.altitude)   // kilometers
 print(data.speed)      // km/h
+```
 
 ### Swift Package Manager
 
