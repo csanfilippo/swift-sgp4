@@ -25,20 +25,19 @@ let package = Package(
 	targets: [
 		.target(
 			name: "SGPKit",
-			dependencies: ["SGPKitOBJC"],
+			dependencies: ["SGP4LibWrapper"],
             exclude: privacyManifestExclude,
             resources: privacyManifestResource,
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
+        .target(
+            name: "SGP4LibWrapper",
+            dependencies: ["SGPKitCPP"]
+        ),
 		.target(
 			name: "SGPKitCPP",
-			path: "Sources/sgp4-147b1ae"
+			path: "Sources/sgp4Lib"
 		),
-		.target(
-			name: "SGPKitOBJC",
-			dependencies: ["SGPKitCPP"],
-			path: "Sources/OBJC"
-        ),
 		.testTarget(
 			name: "SGPKitTests",
 			dependencies: [

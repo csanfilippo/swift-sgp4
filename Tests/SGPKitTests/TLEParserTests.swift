@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2022 Calogero Sanfilippo
+ Copyright (c) 2022-2025 Calogero Sanfilippo
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,53 +22,52 @@
  SOFTWARE.
  */
 
-import Testing
+import XCTest
 import Foundation
 
 @testable import SGPKit
 
-@Suite("TLEParser")
-struct TLEParserTestsSuite {
-    @Test func `when parsing an empty buffer should throw an exception`() async throws {
+final class TLEParserTests: XCTestCase {
+    func testWhenParsingAnEmptyBufferShouldThrowAnException() {
         let emptyBuffer = Data()
         let parser = TLEParser()
 
-        #expect(throws: TLEParser.Error.empty) {
-            try parser.parse(emptyBuffer)
+        XCTAssertThrowsError(try parser.parse(emptyBuffer)) { error in
+            XCTAssertEqual(error as? TLEParser.Error, .empty)
         }
     }
     
-    @Test func `when parsing a not empty buffer if the buffer contains valid data should return a TLE model`() async throws {
+    func testWhenParsingNotEmptyBufferWithValidDataReturnsTLEModel() {
         let parser = TLEParser()
         let validData = self.loadValidTLEData()
 
-        let expectedTLE = try TLE(
+        let expectedTLE = try! TLE(
             title: "ISS (ZARYA)",
             firstLine: "1 11416U 79057A   80003.44366214  .00000727  00000-0  33454-3 0   878",
             secondLine: "2 11416  98.7309  35.7226 0013335  92.0280 268.2428 14.22474848 27074"
         )
         
-        let tle = try parser.parse(validData)
-        #expect(tle.title == expectedTLE.title)
-        #expect(tle.firstLine == expectedTLE.firstLine)
-        #expect(tle.secondLine == expectedTLE.secondLine)
+        let tle = try! parser.parse(validData)
+        XCTAssertEqual(tle.title, expectedTLE.title)
+        XCTAssertEqual(tle.firstLine, expectedTLE.firstLine)
+        XCTAssertEqual(tle.secondLine, expectedTLE.secondLine)
     }
     
-    @Test func `when parsing a not empty buffer if the buffer if the encoded TLE doesn't have 3 lines should raise an exception`() async throws {
+    func testWhenParsingNotEmptyBufferWithWrongLineCountThrows() {
         let parser = TLEParser()
         let invalidData = self.loadOneLineTLEData()
         
-        #expect(throws: TLEParser.Error.wrongLineCount(1)) {
-            _ = try parser.parse(invalidData)
+        XCTAssertThrowsError(try parser.parse(invalidData)) { error in
+            XCTAssertEqual(error as? TLEParser.Error, .wrongLineCount(1))
         }
     }
     
-    @Test func `when parsing a not empty buffer if not all the lines of the TLE have 69 characters should raise an exception`() async throws {
+    func testWhenParsingNotEmptyBufferWithInvalidLineLengthThrows() {
         let parser = TLEParser()
         let invalidData = self.loadInvalidLineLengthTLEData()
         
-        #expect(throws: TLEParser.Error.invalidLineLength) {
-            _ = try parser.parse(invalidData)
+        XCTAssertThrowsError(try parser.parse(invalidData)) { error in
+            XCTAssertEqual(error as? TLEParser.Error, .invalidLineLength)
         }
     }
     
@@ -102,3 +101,4 @@ struct TLEParserTestsSuite {
         return try! Data(contentsOf: url)
     }
 }
+

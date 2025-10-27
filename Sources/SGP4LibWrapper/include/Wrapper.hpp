@@ -1,18 +1,18 @@
 /*
  MIT License
-
- Copyright (c) 2022 Calogero Sanfilippo
-
+ 
+ Copyright (c) 2025 Calogero Sanfilippo
+ 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
-
+ 
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
-
+ 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,18 +22,16 @@
  SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#ifndef Wrapper_hpp
+#define Wrapper_hpp
 
-NS_ASSUME_NONNULL_BEGIN
+#include <Tle.h>
+#include <Eci.h>
+#include <SGP4.h>
+#include <DateTime.h>
+#include <optional>
 
-@interface TLEWrapper : NSObject
+std::optional<libsgp4::Tle> createTLE(std::string title, std::string firstLine, std::string secondLine);
+std::optional<libsgp4::Eci> createEci(libsgp4::SGP4, libsgp4::DateTime);
 
-@property(nonnull, nonatomic, readonly) NSString *title;
-@property(nonnull, nonatomic, readonly) NSString *firstLine;
-@property(nonnull, nonatomic, readonly) NSString *secondLine;
-
-- (instancetype) initWithTitle:(NSString*) title firstLine:(NSString*) firstLine secondLine:(NSString*) secondLine;
-
-@end
-
-NS_ASSUME_NONNULL_END
+#endif /* TleWrapper_hpp */

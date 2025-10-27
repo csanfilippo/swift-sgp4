@@ -11,7 +11,7 @@ DOCKER_RUN = docker run --pull=always --rm \
 
 VERSION ?= 6.2
 
-.PHONY: all clean
+.PHONY: build-all clean
 
 build-linux:
 	$(DOCKER_RUN) $(DOCKER_IMAGE)-$(VERSION)-latest \
@@ -21,17 +21,30 @@ test-linux:
 	$(DOCKER_RUN) $(DOCKER_IMAGE)-$(VERSION)-latest \
 		swift test --triple x86_64-unknown-linux-gnu
 		
-build-62:
+build-linux-62:
 	$(MAKE) build-linux VERSION=6.2
-		
-		
-all:
-	build-62
-	$(MAKE) build-linux VERSION=6.2
+build-linux-61:
 	$(MAKE) build-linux VERSION=6.1
+build-linux-60:
 	$(MAKE) build-linux VERSION=6.0
-	$(MAKE) build-linux VERSION=5.1
+build-linux-510:
+	$(MAKE) build-linux VERSION=5.10
+		
+build-linux-all: build-linux-62 build-linux-61 build-linux-60 build-linux-510
 
+test-linux-62:
+	$(MAKE) test-linux VERSION=6.2
+
+test-linux-61:
+	$(MAKE) test-linux VERSION=6.1
+
+test-linux-60:
+	$(MAKE) test-linux VERSION=6.0
+
+test-linux-510:
+	$(MAKE) test-linux VERSION=5.10
+
+test-linux-all: test-linux-62 test-linux-61 test-linux-60 test-linux-510
 
 clean:
 	rm -rf $(PROJECT_DIR)/.build

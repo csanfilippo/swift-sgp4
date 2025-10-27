@@ -22,27 +22,27 @@
  SOFTWARE.
  */
 
-import Testing
+import XCTest
 
 @testable import SGPKit
 
-@Suite("TLE")
-struct TLETests {
-    @Test func `should not have empty first line or second line`() async throws {
-        #expect(throws: TLEError.linesCannoteBeEmpty) {
-            try TLE(firstLine: "", secondLine: "")
+final class TLETests: XCTestCase {
+    func testShouldNotHaveEmptyFirstLineOrSecondLine() throws {
+        XCTAssertThrowsError(try TLE(firstLine: "", secondLine: "")) { error in
+            XCTAssertEqual(error as? TLEError, .linesCannoteBeEmpty)
         }
     }
     
-    @Test func `should not have empty lines longer than 69 characters`() async throws {
-        #expect(throws: TLEError.linesMustBeSixNineCharactersLong) {
-            try TLE(firstLine: String(repeating: "a", count: 70), secondLine: String(repeating: "a", count: 70))
+    func testShouldNotHaveLinesLongerThan69Characters() throws {
+        XCTAssertThrowsError(try TLE(firstLine: String(repeating: "a", count: 70), secondLine: String(repeating: "a", count: 70))) { error in
+            XCTAssertEqual(error as? TLEError, .linesMustBeSixNineCharactersLong)
         }
     }
     
-    @Test func `should not have empty lines shorter than 69 characters`() async throws {
-        #expect(throws: TLEError.linesMustBeSixNineCharactersLong) {
-            try TLE(firstLine: String(repeating: "a", count: 68), secondLine: String(repeating: "a", count: 67))
+    func testShouldNotHaveLinesShorterThan69Characters() throws {
+        XCTAssertThrowsError(try TLE(firstLine: String(repeating: "a", count: 68), secondLine: String(repeating: "a", count: 67))) { error in
+            XCTAssertEqual(error as? TLEError, .linesMustBeSixNineCharactersLong)
         }
     }
 }
+

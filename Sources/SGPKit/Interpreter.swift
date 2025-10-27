@@ -1,7 +1,7 @@
 /*
  MIT License
 
- Copyright (c) 2022 Calogero Sanfilippo
+ Copyright (c) 2022-2025 Calogero Sanfilippo
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,8 @@
  SOFTWARE.
  */
 
-import SGPKitOBJC
-
-private extension TLE {
-	var asTLEWrapper: TLEWrapper {
-		TLEWrapper(title: title, firstLine: firstLine, secondLine: secondLine)
-	}
-}
-
-private extension SGPKitOBJC.SatelliteData {
-	var asSatelliteData: SatelliteData {
-		SatelliteData(latitude: latitude, longitude: longitude, speed: speed, altitude: altitude)
-	}
-}
+import SGP4LibWrapper
+import Foundation
 
 /// A lightweight interpreter that propagates a TLE using the SGP4 model.
 ///
@@ -68,8 +57,6 @@ public final class TLEInterpreter: Sendable {
         case tle
         /// The satellite state could not be computed due to a model or state error.
         case satellite
-        /// An unspecified error occurred.
-        case generic
     }
 
 	/// Computes satellite geodetic position, altitude, and speed for a given date.
@@ -89,7 +76,6 @@ public final class TLEInterpreter: Sendable {
 	///   Specifically, this method throws:
 	///   - ``TLEInterpreter/Error/tle`` when the TLE is invalid or unsupported.
 	///   - ``TLEInterpreter/Error/satellite`` when the satellite state cannot be computed.
-	///   - ``TLEInterpreter/Error/generic`` for any other unspecified failure.
 	///
 	/// - Discussion: This method constructs a new SGP4 engine on each call and does
 	///   not cache results. If you need to evaluate many times in quick succession,
@@ -103,23 +89,74 @@ public final class TLEInterpreter: Sendable {
 	/// let state = try interpreter.satelliteData(from: tle, date: now)
 	/// print(state.latitude, state.longitude, state.altitude, state.speed)
 	/// ```
-	public func satelliteData(from tle: TLE, date: Date) throws -> SatelliteData {
-        do {
-            let wrapper = SGP4Wrapper()
-            let result: SGPKitOBJC.SatelliteData = try wrapper.getSatelliteData(from: tle.asTLEWrapper, date: date)
-            return result.asSatelliteData
-        } catch let error as SGPKitError {
-            switch error.code {
-            case .TLE_ERROR:
-                throw Error.tle
-            case .SATELLITE_ERROR:
-                throw Error.satellite
-            case .GENERIC_ERROR:
-                throw Error.generic
-            @unknown default:
-                throw Error.generic
-            }
+	public func satelliteData(from nativeTLE: TLE, date: Date) throws -> SatelliteData {
+        
+        let tle = createTLE(
+            std.string(nativeTLE.title),
+            std.string(nativeTLE.firstLine),
+            std.string(nativeTLE.secondLine)
+        )
+        
+        guard let tleValue = tle.value else {
+            throw Error.tle
         }
+        
+        let sgp4 = libsgp4.SGP4(tleValue)
+        
+        
+        let currentTime = dateTimeFrom(date)
+        
+        
+        return try satelliteDataFrom(sgp4: sgp4, date: currentTime)
 	}
+    
+    private func satelliteDataFrom(sgp4: libsgp4.SGP4, date: libsgp4.DateTime) throws -> SatelliteData {
+        let maybeEci = createEci(sgp4, date)
+        
+        guard let eci = maybeEci.value else {
+            throw Error.satellite
+        }
+        
+        let geo = eci.ToGeodetic()
+        
+        let velocity = eci.Velocity().Magnitude() * 3600.0
+        
+        let latitude = geo.latitude * 180.0 / .pi
+        let longitude = geo.longitude * 180.0 / .pi
+        let altitude = geo.altitude
+        
+        return .init(latitude: latitude, longitude: longitude, speed: velocity, altitude: altitude)
+        
+    }
+    
+    private func dateTimeFrom(_ date: Date) -> libsgp4.DateTime {
+        
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .nanosecond], from: date)
+        
+        let year = Int32(components.year ?? 0)
+        let month = Int32(components.month ?? 0)
+        let day = Int32(components.day ?? 0)
+        let hour = Int32(components.hour ?? 0)
+        let minute = Int32(components.minute ?? 0)
+        let second = Int32(components.second ?? 0)
+        let micro = Int32(components.nanosecond ?? 0) / 1000
+        
+        var dateTime = libsgp4.DateTime(
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second
+        )
+        
+        dateTime.Initialise(year, month, day, hour, minute, second, micro)
+        
+        
+        return dateTime
+    }
 }
 

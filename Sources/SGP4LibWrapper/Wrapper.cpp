@@ -1,18 +1,18 @@
 /*
  MIT License
-
- Copyright (c) 2022 Calogero Sanfilippo
-
+ 
+ Copyright (c) 2025 Calogero Sanfilippo
+ 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
-
+ 
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
-
+ 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,18 +22,28 @@
  SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#include "Wrapper.hpp"
+#include <string>
 
-NS_ASSUME_NONNULL_BEGIN
+std::optional<libsgp4::Tle> createTLE(std::string title, std::string firstLine, std::string secondLine) {
+    try {
+        return libsgp4::Tle(title, firstLine, secondLine);
+    } catch (libsgp4::TleException& ex) {
+        return std::nullopt;
+    } catch (std::exception& ex) {
+        return std::nullopt;
+    }
+}
 
-@interface SatelliteData : NSObject
-@property(readonly) double latitude;
-@property(readonly) double longitude;
-@property(readonly) double speed;
-@property(readonly) double altitude;
-
-- (instancetype) initWithLatitude:(double) latitude longitude:(double) longitude speed:(double) speed altitude:(double) altitude;
-
-@end
-
-NS_ASSUME_NONNULL_END
+std::optional<libsgp4::Eci> createEci(libsgp4::SGP4 sgp4, libsgp4::DateTime dateTime) {
+    
+    try {
+        auto position = sgp4.FindPosition(dateTime);
+        
+        return position;
+    } catch (libsgp4::SatelliteException& ex) {
+        return std::nullopt;
+    } catch (std::exception& ex) {
+        return std::nullopt;
+    }
+}
