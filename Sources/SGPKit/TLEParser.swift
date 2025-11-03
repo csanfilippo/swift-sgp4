@@ -54,6 +54,8 @@ public final class TLEParser: Sendable {
         /// An unexpected failure occurred while constructing the `TLE` (e.g., a non‑length validation error).
         case unexpectedError
     }
+    
+    public init() {}
 
     /// Parses an ASCII buffer containing a single TLE set into a `TLE` value.
     ///

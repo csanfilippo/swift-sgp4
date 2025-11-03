@@ -58,6 +58,8 @@ public final class TLEInterpreter: Sendable {
         /// The satellite state could not be computed due to a model or state error.
         case satellite
     }
+    
+    public init() {}
 
 	/// Computes satellite geodetic position, altitude, and speed for a given date.
 	///
