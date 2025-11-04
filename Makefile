@@ -11,7 +11,7 @@ DOCKER_RUN = docker run --pull=always --rm \
 
 VERSION ?= 6.2
 
-.PHONY: build-all clean
+.PHONY: build-linux-all clean
 
 build-linux:
 	$(DOCKER_RUN) $(DOCKER_IMAGE)-$(VERSION)-latest \
