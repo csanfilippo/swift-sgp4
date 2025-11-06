@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 5.10
 
 import PackageDescription
 
@@ -44,7 +44,7 @@ let package = Package(
 				"SGPKit"
 			],
 			resources: [
-				.copy("Mocks")
+				.copy("Fixtures/Mocks")
 			],
             swiftSettings: [.interoperabilityMode(.Cxx)]
 		)

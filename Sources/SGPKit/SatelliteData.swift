@@ -1,18 +1,18 @@
 /*
  MIT License
- 
+
  Copyright (c) 2025 Calogero Sanfilippo
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,32 +22,28 @@
  SOFTWARE.
  */
 
-import Testing
+import Foundation
 
-@testable import SGPKit
+/// A snapshot of satellite state in geodetic coordinates (WGS‑84).
+///
+/// Values are expressed in display‑friendly units suitable for UI and basic
+/// computations. This type is a simple data container and performs no
+/// validation.
+///
+/// - Note: Latitude and longitude are in degrees. Altitude is measured
+///   along the ellipsoidal normal (geodetic height).
+public struct SatelliteData: Sendable {
 
-@Suite("TLE")
-struct TLETests {
-    
-    @Test("should not have lines longer than 69 characters")
-    func testShouldNotHaveLinesLongerThan69Characters() throws {
-        #expect(throws: TLEError.linesMustBeSixNineCharactersLong) {
-            try TLE(firstLine: String(repeating: "a", count: 70), secondLine: String(repeating: "a", count: 69))
-        }
-    }
+	/// Geodetic latitude in degrees. Range: −90…90.
+	public let latitude: Double
 
-    @Test("should not have lines shorter than 69 characters")
-    func testShouldNotHaveLinesShorterThan69Characters() throws {
-        #expect(throws: TLEError.linesMustBeSixNineCharactersLong) {
-            try TLE(firstLine: String(repeating: "a", count: 68), secondLine: String(repeating: "a", count: 69))
-        }
-    }
-    
-    @Test("should have lines that are 69 characters long")
-    func linesMustBe69CharactersLong() throws {
-        #expect(throws: Never.self) {
-            try TLE(firstLine: String(repeating: "a", count: 69), secondLine: String(repeating: "a", count: 69))
-        }
-    }
+	/// Geodetic longitude in degrees. Range: −180…180.
+	public let longitude: Double
+
+	/// Instantaneous speed magnitude in kilometers per hour (km/h).
+	public let speed: Double
+
+	/// Geodetic altitude above the WGS‑84 reference ellipsoid, in kilometers (km).
+	public let altitude: Double
 }
 

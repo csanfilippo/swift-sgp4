@@ -22,20 +22,17 @@
  SOFTWARE.
  */
 
-import XCTest
+import Testing
 import Foundation
 
 @testable import SGPKit
 
-private enum Error: Swift.Error {
-	case invalidDate
-	case invalidTimezone
-}
-
 private let tolerance = 0.000001
 
-final class TLEInterpreterTests: XCTestCase {
+@Suite("TLEInterpreter")
+struct TLEInterpreterTests {
     
+    @Test("should return satellite data")
     func testItShouldReturnTheExpectedSatelliteData() throws {
         let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
         let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
@@ -51,17 +48,15 @@ final class TLEInterpreterTests: XCTestCase {
         let longitudeAbsoluteDiff = fabs(data.longitude - expectedLongitude)
         let altitudeAbsoluteDiff = fabs(data.altitude - expectedAltitude)
 
-        XCTAssertLessThanOrEqual(latitudeAbsoluteDiff, tolerance)
-        XCTAssertLessThanOrEqual(longitudeAbsoluteDiff, tolerance)
-        XCTAssertLessThanOrEqual(altitudeAbsoluteDiff, tolerance)
+        #expect(latitudeAbsoluteDiff <= tolerance)
+        #expect(longitudeAbsoluteDiff <= tolerance)
+        #expect(altitudeAbsoluteDiff <= tolerance)
     }
     
     private func generateTestDate() throws -> Date {
         var calendar = Calendar.current
 
-        guard let utcTimezone = TimeZone(secondsFromGMT: 0) else {
-            throw Error.invalidTimezone
-        }
+        let utcTimezone = TimeZone(secondsFromGMT: 0)!
 
         calendar.timeZone = utcTimezone
 
@@ -75,10 +70,6 @@ final class TLEInterpreterTests: XCTestCase {
         components.second = 7
         components.nanosecond = 200000 * 1000
 
-        guard let date = calendar.date(from: components) else {
-            throw Error.invalidDate
-        }
-
-        return date
+        return calendar.date(from: components)!
     }
 }

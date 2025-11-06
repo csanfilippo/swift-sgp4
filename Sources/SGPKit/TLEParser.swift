@@ -24,6 +24,8 @@
 
 import Foundation
 
+/// Deprecated: Prefer initializing and decoding `TLE` directly using `Codable`.
+@available(*, deprecated, message: "Prefer using TLEDecoder to create a TLE from a buffer")
 /// A parser for Two‑Line Element (TLE) sets.
 ///
 /// This parser accepts an ASCII‑encoded buffer that contains exactly three lines:
@@ -55,8 +57,12 @@ public final class TLEParser: Sendable {
         case unexpectedError
     }
     
+    /// Deprecated: Use `TLE`'s `Codable` support or direct initializers instead.
+    @available(*, deprecated, message: "Prefer using TLEDecoder to create a TLE from a buffer")
     public init() {}
 
+    /// Deprecated: Parse data using `Codable` conformance on `TLE` instead.
+    @available(*, deprecated, message: "Use TLEDecoder.decode(_:, _:) instead of TLEParser.parse(_:) .")
     /// Parses an ASCII buffer containing a single TLE set into a `TLE` value.
     ///
     /// The input must contain exactly three newline‑separated lines:

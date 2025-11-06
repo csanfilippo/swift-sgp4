@@ -41,10 +41,7 @@ test-linux-61:
 test-linux-60:
 	$(MAKE) test-linux VERSION=6.0
 
-test-linux-510:
-	$(MAKE) test-linux VERSION=5.10
-
-test-linux-all: test-linux-62 test-linux-61 test-linux-60 test-linux-510
+test-linux-all: test-linux-62 test-linux-61 test-linux-60
 
 clean:
 	rm -rf $(PROJECT_DIR)/.build

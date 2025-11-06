@@ -13,9 +13,11 @@ let title = "ISS (ZARYA)"
 let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
 let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
 
-// Parse or construct a TLE
-let parser = TLEParser()
-let tle = try parser.parse(lines: [firstLine, secondLine], title: title)
+let tle = try TLE(
+    title: title,
+    firstLine: firstLine,
+    secondLine: secondLine
+)
 
 // Instantiate the interpreter (stateless and Sendable)
 let interpreter = TLEInterpreter()
@@ -38,7 +40,7 @@ If you want to use SGPKit in any other project that uses [SwiftPM](https://swift
 dependencies: [
   .package(
     url: "https://github.com/csanfilippo/swift-sgp4",
-    from: "3.0.0"
+    from: "3.1.0"
   ),
 ]
 ```

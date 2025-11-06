@@ -33,8 +33,7 @@ import Foundation
 /// speed (km/h).
 ///
 /// Instances are stateless and inexpensive to create; you can construct and
-/// reuse them across multiple calls. Input validation is not performed here—use
-/// `TLEParser` to construct a validated `TLE`.
+/// reuse them across multiple calls.
 ///
 /// Thread safety
 ///  - This type is immutable and `Sendable`. Create and use instances from any
@@ -45,7 +44,7 @@ import Foundation
 ///    times, call the method as needed or implement your own memoization if
 ///    appropriate for your use case.
 ///
-/// - SeeAlso: `TLE`, `SatelliteData`, `TLEParser`
+/// - SeeAlso: `TLE`, `SatelliteData`
 public final class TLEInterpreter: Sendable {
     
     /// Errors that can occur while interpreting a TLE.
@@ -67,7 +66,7 @@ public final class TLEInterpreter: Sendable {
 	/// TLE at the specified moment.
 	///
 	/// - Parameters:
-	///   - tle: The TLE to propagate. Prefer a value produced by `TLEParser`.
+	///   - tle: The TLE to propagate.
 	///   - date: The instant for which to compute the satellite state. `Date` is an
 	///           absolute timestamp; results correspond to that exact moment.
 	/// - Returns: A `SatelliteData` snapshot with:
@@ -86,7 +85,7 @@ public final class TLEInterpreter: Sendable {
 	/// - Example:
 	/// ```swift
 	/// let interpreter = TLEInterpreter()
-	/// let tle = try TLEParser().parse(lines: [line1, line2])
+	/// let tle = try TLE(firstLine: "valid data here", secondLine: "valid data here")
 	/// let now = Date()
 	/// let state = try interpreter.satelliteData(from: tle, date: now)
 	/// print(state.latitude, state.longitude, state.altitude, state.speed)
