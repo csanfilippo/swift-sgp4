@@ -20,7 +20,8 @@ let package = Package(
 			targets: ["SGPKit"])
 	],
 	dependencies: [
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0")
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0"),
+        .package(url: "https://github.com/apple/swift-numerics", from: "1.1.0"),
 	],
 	targets: [
 		.target(
@@ -41,7 +42,8 @@ let package = Package(
 		.testTarget(
 			name: "SGPKitTests",
 			dependencies: [
-				"SGPKit"
+				"SGPKit",
+                .product(name: "Numerics", package: "swift-numerics")
 			],
 			resources: [
 				.copy("Fixtures/Mocks")

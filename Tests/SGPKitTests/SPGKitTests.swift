@@ -23,11 +23,11 @@
  */
 
 import Testing
+import Numerics
 import Foundation
 
 @testable import SGPKit
 
-private let tolerance = 0.000001
 
 @Suite("TLEInterpreter")
 struct TLEInterpreterTests {
@@ -43,14 +43,11 @@ struct TLEInterpreterTests {
         let expectedLatitude = 45.2893067
         let expectedLongitude = -136.62764
         let expectedAltitude = 411.5672031
-
-        let latitudeAbsoluteDiff = fabs(data.latitude - expectedLatitude)
-        let longitudeAbsoluteDiff = fabs(data.longitude - expectedLongitude)
-        let altitudeAbsoluteDiff = fabs(data.altitude - expectedAltitude)
-
-        #expect(latitudeAbsoluteDiff <= tolerance)
-        #expect(longitudeAbsoluteDiff <= tolerance)
-        #expect(altitudeAbsoluteDiff <= tolerance)
+        
+        #expect(data.latitude.isApproximatelyEqual(to: expectedLatitude))
+        #expect(data.longitude.isApproximatelyEqual(to: expectedLongitude))
+        #expect(data.altitude.isApproximatelyEqual(to: expectedAltitude))
+        
     }
     
     private func generateTestDate() throws -> Date {
