@@ -81,3 +81,8 @@ to reason about C++ exceptions directly.
 - Floating-point assertions on computed satellite data use swift-numerics'
   `isApproximatelyEqual(to:)` rather than exact equality, since SGP4 propagation is
   floating-point-sensitive.
+
+## Commit messages
+
+Keep commits short: a one-line subject plus at most 1-2 short sentences of body. No multi-paragraph
+explanations of the mechanism/root cause — that belongs in the PR description or conversation.
