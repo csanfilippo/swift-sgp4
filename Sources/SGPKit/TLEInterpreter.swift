@@ -101,10 +101,11 @@ public final class TLEInterpreter: Sendable {
         guard let tleValue = tle.value else {
             throw Error.tle
         }
-        
-        let sgp4 = libsgp4.SGP4(tleValue)
-        
-        
+
+        guard let sgp4 = createSGP4(tleValue).value else {
+            throw Error.satellite
+        }
+
         let currentTime = dateTimeFrom(date)
         
         

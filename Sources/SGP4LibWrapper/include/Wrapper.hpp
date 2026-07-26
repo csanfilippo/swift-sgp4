@@ -32,6 +32,7 @@
 #include <optional>
 
 std::optional<libsgp4::Tle> createTLE(std::string title, std::string firstLine, std::string secondLine);
+std::optional<libsgp4::SGP4> createSGP4(libsgp4::Tle);
 std::optional<libsgp4::Eci> createEci(libsgp4::SGP4, libsgp4::DateTime);
 
 #endif /* TleWrapper_hpp */

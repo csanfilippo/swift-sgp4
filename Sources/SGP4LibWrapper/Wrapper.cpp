@@ -35,6 +35,16 @@ std::optional<libsgp4::Tle> createTLE(std::string title, std::string firstLine, 
     }
 }
 
+std::optional<libsgp4::SGP4> createSGP4(libsgp4::Tle tle) {
+    try {
+        return libsgp4::SGP4(tle);
+    } catch (libsgp4::SatelliteException& ex) {
+        return std::nullopt;
+    } catch (std::exception& ex) {
+        return std::nullopt;
+    }
+}
+
 std::optional<libsgp4::Eci> createEci(libsgp4::SGP4 sgp4, libsgp4::DateTime dateTime) {
     
     try {
