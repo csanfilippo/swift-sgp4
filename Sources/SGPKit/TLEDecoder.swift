@@ -61,8 +61,17 @@ public final class TLEDecoder {
     ///   underlying error is a `TLEDecoder.Error` describing the specific reason.
     public func decode(_ data: Data) throws -> TLE {
         let decoder = TLEDecoding(data: data)
-        
-        return try TLE(from: decoder)
+        var container = try decoder.unkeyedContainer()
+
+        let title = try container.decode(String.self)
+        let firstLine = try container.decode(String.self)
+        let secondLine = try container.decode(String.self)
+
+        do {
+            return try TLE(title: title, firstLine: firstLine, secondLine: secondLine)
+        } catch TLEError.linesMustBeSixNineCharactersLong {
+            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: TLEDecoder.Error.invalidLineLength))
+        }
     }
     
     /// Decodes one or more TLEs from an ASCII buffer.
@@ -158,11 +167,7 @@ private final class TLEDecodingUnkeyedContainer: UnkeyedDecodingContainer {
         }
         
         let currentLine = lines[currentIndex]
-        
-        if currentIndex > 0 && currentLine.count != 69 {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: TLEDecoder.Error.invalidLineLength))
-        }
-        
+
         currentIndex += 1
         
         if let count, currentIndex == count {

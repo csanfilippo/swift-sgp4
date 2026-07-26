@@ -38,15 +38,15 @@ public enum TLEError: Error {
 /// 69‑character length) during initialization and throws on failure.
 ///
 /// Codable:
-/// - Decoding: Expects an unkeyed container (array) of three `String` values
-///   in the order `[title, firstLine, secondLine]`. See `init(from:)`.
-/// - Encoding: Uses the synthesized keyed representation unless you implement
-///   a custom `encode(to:)`. If you need symmetry with decoding, provide a matching encoder.
+/// - Fully synthesized: a standard keyed container of `title`, `firstLine`, `secondLine`.
+///   This conformance is unrelated to the ASCII TLE text format; use `TLEDecoder`/
+///   `TLEEncoder` to convert to and from raw TLE text lines.
+/// - Note: Synthesized decoding does not enforce the 69‑character invariant. Use the
+///   designated initializers (or `TLEDecoder`) when constructing a `TLE` from untrusted data.
 ///
 /// Validation:
 /// - The designated initializers validate non‑empty lines and exact 69‑character
 ///   length and will throw on failure.
-/// - The `Decodable` initializer performs the same validations of the designated initializer.
 ///
 /// Equatable:
 /// - Two `TLE` values are equal when all three stored properties are equal using
@@ -97,22 +97,5 @@ public struct TLE: Sendable, Codable, Equatable {
     /// - SeeAlso: `init(title:firstLine:secondLine:)`
     public init(firstLine: String, secondLine: String) throws {
         try self.init(title: "", firstLine: firstLine, secondLine: secondLine)
-    }
-    
-    /// Decodes a `TLE` from an unkeyed container of three `String` values.
-    ///
-    /// The expected order is: `title`, `firstLine`, `secondLine`.
-    /// - Important: This initializer does not validate the 69‑character invariant
-    ///   or non‑emptiness of the data lines; it decodes the raw values as-is.
-    ///   Use the designated initializers to enforce validation when constructing
-    ///   a `TLE` from strings.
-    /// - Throws: A `DecodingError` if the container does not contain three strings
-    ///   in the expected order or if the values cannot be decoded.
-    public init(from decoder: any Decoder) throws {
-        var container = try decoder.unkeyedContainer()
-        
-        self.title = try container.decode(String.self)
-        self.firstLine = try container.decode(String.self)
-        self.secondLine = try container.decode(String.self)
     }
 }
