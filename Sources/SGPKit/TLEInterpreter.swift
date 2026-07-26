@@ -133,7 +133,7 @@ public final class TLEInterpreter: Sendable {
     
     private func dateTimeFrom(_ date: Date) -> libsgp4.DateTime {
         
-        var calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         
         let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .nanosecond], from: date)
