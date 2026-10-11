@@ -19,7 +19,9 @@ swift test --filter "TLEInterpreterTests/testItShouldReturnTheExpectedSatelliteD
 swift package generate-documentation # build DocC docs (swift-docc-plugin)
 ```
 
-Linux builds/tests run in Docker via the Makefile (mirrors CI matrix across Swift 5.10, 6.0, 6.1, 6.2):
+There is no CI workflow in the repo; builds are done by Swift Package Index (`.spi.yml`: iOS,
+tvOS, watchOS, plus DocC for `SGPKit`). Linux builds/tests run locally in SPI's Docker images
+via the Makefile (build: Swift 5.10–6.2; test: 6.0–6.2):
 
 ```bash
 make build-linux-62   # or build-linux-61 / build-linux-60 / build-linux-510 / build-linux-all
@@ -35,7 +37,8 @@ Three layered targets, each a boundary you should not blur:
 
 1. **`SGPKitCPP`** (`Sources/sgp4Lib`) — the vendored, unmodified upstream `sgp4` C++ library
    (`Tle`, `SGP4`, `Eci`, `DateTime`, etc.). Treat this as third-party code; don't hand-edit it,
-   re-vendor from upstream instead.
+   re-vendor with `scripts/update-sgp4.sh <tag-or-commit>`, which records the upstream commit
+   in `Sources/sgp4Lib/UPSTREAM_REVISION`.
 2. **`SGP4LibWrapper`** (`Sources/SGP4LibWrapper`) — a thin C++ bridging layer
    (`Wrapper.hpp`/`Wrapper.cpp`). Its sole job is to catch the C++ exceptions the sgp4 library
    throws (`TleException`, `SatelliteException`) at the boundary and convert them into
@@ -49,8 +52,10 @@ Three layered targets, each a boundary you should not blur:
 
 - **`TLE`** — the validated Two-Line Element value type. Enforces the format invariant (both data
   lines exactly 69 characters) in its designated initializers; construction throws
-  `TLEError.linesMustBeSixNineCharactersLong` otherwise. `Codable` is custom, not
-  JSON-shaped — see below.
+  `TLEError.linesMustBeSixNineCharactersLong` otherwise. Its `Codable` conformance is fully
+  synthesized (keyed: `title`, `firstLine`, `secondLine`) and has nothing to do with the ASCII
+  TLE format. Synthesized decoding bypasses the 69-character check, so build `TLE`s from
+  untrusted input via the designated initializers or `TLEDecoder`.
 - **`TLEInterpreter`** — stateless, `Sendable` propagator. `satelliteData(from:date:)` builds a
   C++ `libsgp4.Tle` and `libsgp4.SGP4` per call (no caching), converts `Date` to `libsgp4.DateTime`
   in UTC, and maps the resulting ECI position/velocity into geodetic degrees/km/km-h. Failures at
@@ -60,11 +65,12 @@ Three layered targets, each a boundary you should not blur:
 - **`TLEDecoder` / `TLEEncoder`** — the supported way to convert between raw ASCII TLE text and
   `TLE`. These are *not* generic `Codable` adapters: they implement a bespoke line-based
   `Encoder`/`Decoder` pair where the "container" is literally the newline-separated text lines.
-  `TLE.init(from:)` expects an **unkeyed** container of exactly three strings
-  (`[title, firstLine, secondLine]`); `TLEEncoder` requires a **keyed** container that emits
-  strings as lines. Because of this asymmetry, encode/decode are not mirror images of each other —
-  don't assume round-tripping through `Codable` conformances elsewhere will work the same way.
-  `TLEDecoder.decode` handles a single TLE; `decodeCollection` handles a buffer of N TLE triplets.
+  The decoder side never calls `TLE.init(from:)`: `decode` pulls three strings from the unkeyed
+  container itself, and `decodeCollection` goes through the container's generic `decode<T>`,
+  which only accepts `TLE` and constructs it directly. The encoder side *does* rely on
+  `TLE`'s synthesized `encode(to:)`: it appends every `String` written to its keyed container as
+  a line, so the output line order is the **declaration order of `TLE`'s stored properties** —
+  reordering them silently breaks encoding.
 - **`TLEParser`** — deprecated; kept for source compatibility. New code should use `TLEDecoder`.
 
 ### Error handling pattern
@@ -74,6 +80,8 @@ Exceptions are only caught once, at the C++/Swift seam in `Wrapper.cpp`. Everyth
 to reason about C++ exceptions directly.
 
 ### Tests (`Tests/SGPKitTests`)
+
+- One suite per type; `TLEInterpreterTests` lives in the misleadingly named `SPGKitTests.swift`.
 
 - Fixture TLE text files live in `Tests/SGPKitTests/Fixtures/Mocks` and are loaded through
   `Bundle.module` (see `TLETestUtils`) — add new fixtures there and register them in
