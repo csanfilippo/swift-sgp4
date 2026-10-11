@@ -2,6 +2,12 @@
 
 All notable changes to `SGPKit` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Releases up to 3.1.0 are described in the [GitHub releases](https://github.com/csanfilippo/swift-sgp4/releases).
 
+## Unreleased
+
+### Added
+
+- TLEs whose satellite catalog number uses the Alpha-5 format, a letter followed by four digits (such as `A0001` for 100001), now propagate. Previously `TLEInterpreter.satelliteData(from:date:)` threw `TLEInterpreter.Error.tle` for them.
+
 ## 4.0.0 – 2026-10-11
 
 ### Changed

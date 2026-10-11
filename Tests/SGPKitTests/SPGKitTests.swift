@@ -47,9 +47,19 @@ struct TLEInterpreterTests {
         #expect(data.latitude.isApproximatelyEqual(to: expectedLatitude))
         #expect(data.longitude.isApproximatelyEqual(to: expectedLongitude))
         #expect(data.altitude.isApproximatelyEqual(to: expectedAltitude))
-        
+
     }
-    
+
+    @Test("should return satellite data for a TLE with an Alpha-5 catalog number")
+    func alpha5CatalogNumber() throws {
+        let interpreter = TLEInterpreter()
+        let data = try interpreter.satelliteData(from: TLETestUtils.alpha5TLE(), date: try self.generateTestDate())
+
+        #expect(data.latitude.isApproximatelyEqual(to: 45.2893067))
+        #expect(data.longitude.isApproximatelyEqual(to: -136.62764))
+        #expect(data.altitude.isApproximatelyEqual(to: 411.5672031))
+    }
+
     private func generateTestDate() throws -> Date {
         var calendar = Calendar.current
 
