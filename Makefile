@@ -1,47 +1,31 @@
-DOCKER_IMAGE ?= registry.gitlab.com/finestructure/spi-images:basic
+# Versions are written without the dot (62 for Swift 6.2) to keep target names like build-linux-62.
+# 6.1–6.4 mirror Swift Package Index's Linux builds; 5.10 guards the swift-tools-version floor,
+# which SPI no longer checks.
+BUILD_VERSIONS := 510 61 62 63 64
+# The tests use the error returned by #expect(throws:), which Swift Testing added in Swift 6.1.
+TEST_VERSIONS := 61 62 63 64
 
-PROJECT_DIR ?= $(PWD)
+PROJECT_DIR ?= $(CURDIR)
 
-DOCKER_RUN = docker run --pull=always --rm \
-	-v "$(PROJECT_DIR)":/host \
-	-w /host \
-	-e JAVA_HOME="/root/.sdkman/candidates/java/current" \
-	-e SPI_BUILD="1" \
-	-e SPI_PROCESSING="1"
+swift_tag = $(shell echo $(1) | sed 's/^./&./')
 
-VERSION ?= 6.2
+# Each version gets its own scratch path so Linux builds never share artifacts with macOS
+# builds or with each other.
+docker_swift = docker run --rm -v "$(PROJECT_DIR)":/host -w /host swift:$(call swift_tag,$(1)) \
+	swift $(2) --scratch-path .build/linux-$(call swift_tag,$(1))
 
-.PHONY: build-linux-all clean
+.PHONY: build-linux-all test-linux-all clean \
+	$(addprefix build-linux-,$(BUILD_VERSIONS)) $(addprefix test-linux-,$(TEST_VERSIONS))
 
-build-linux:
-	$(DOCKER_RUN) $(DOCKER_IMAGE)-$(VERSION)-latest \
-		swift build --triple x86_64-unknown-linux-gnu
-		
-test-linux:
-	$(DOCKER_RUN) $(DOCKER_IMAGE)-$(VERSION)-latest \
-		swift test --triple x86_64-unknown-linux-gnu
-		
-build-linux-62:
-	$(MAKE) build-linux VERSION=6.2
-build-linux-61:
-	$(MAKE) build-linux VERSION=6.1
-build-linux-60:
-	$(MAKE) build-linux VERSION=6.0
-build-linux-510:
-	$(MAKE) build-linux VERSION=5.10
-		
-build-linux-all: build-linux-62 build-linux-61 build-linux-60 build-linux-510
+build-linux-all: $(addprefix build-linux-,$(BUILD_VERSIONS))
 
-test-linux-62:
-	$(MAKE) test-linux VERSION=6.2
+test-linux-all: $(addprefix test-linux-,$(TEST_VERSIONS))
 
-test-linux-61:
-	$(MAKE) test-linux VERSION=6.1
+$(addprefix build-linux-,$(BUILD_VERSIONS)): build-linux-%:
+	$(call docker_swift,$*,build)
 
-test-linux-60:
-	$(MAKE) test-linux VERSION=6.0
-
-test-linux-all: test-linux-62 test-linux-61 test-linux-60
+$(addprefix test-linux-,$(TEST_VERSIONS)): test-linux-%:
+	$(call docker_swift,$*,test)
 
 clean:
 	rm -rf $(PROJECT_DIR)/.build

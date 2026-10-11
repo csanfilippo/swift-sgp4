@@ -19,13 +19,16 @@ swift test --filter "TLEInterpreterTests/testItShouldReturnTheExpectedSatelliteD
 swift package generate-documentation # build DocC docs (swift-docc-plugin)
 ```
 
-There is no CI workflow in the repo; builds are done by Swift Package Index (`.spi.yml`: iOS,
-tvOS, watchOS, plus DocC for `SGPKit`). Linux builds/tests run locally in SPI's Docker images
-via the Makefile (build: Swift 5.10–6.2; test: 6.0–6.2):
+There is no CI workflow in the repo; builds are done by Swift Package Index (`.spi.yml` adds
+iOS, tvOS, watchOS and DocC for `SGPKit`; SPI builds Linux on Swift 6.1–6.4). The Makefile runs
+Linux builds/tests locally in the official `swift:<version>` Docker images: it mirrors SPI's
+6.1–6.4 and also builds on 5.10, the `swift-tools-version` floor SPI no longer checks. Tests don't
+run on 5.10, since they use the error returned by `#expect(throws:)`, added in 6.1. Each version
+builds into its own `.build/linux-<version>`:
 
 ```bash
-make build-linux-62   # or build-linux-61 / build-linux-60 / build-linux-510 / build-linux-all
-make test-linux-62    # or test-linux-61 / test-linux-60 / test-linux-all
+make build-linux-64   # or build-linux-63 / -62 / -61 / -510 / build-linux-all
+make test-linux-64    # or test-linux-63 / -62 / -61 / test-linux-all
 make clean
 ```
 
