@@ -5,9 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 SGPKit is a Swift package that wraps the [sgp4](https://github.com/dnwrnr/sgp4) C++ library (by
-Daniel Warner) to compute satellite positions from Two-Line Element sets (TLE). Swift talks to the
-vendored C++ code directly via C++ interop (`.interoperabilityMode(.Cxx)`), not through an
-Objective-C shim.
+Daniel Warner) to compute satellite positions from Two-Line Element sets (TLE). Swift reaches the
+vendored C++ code through a plain C interface, so neither SGPKit nor its consumers enable C++
+interop (`.interoperabilityMode(.Cxx)`). Keep it that way: any C++ type or header reachable from
+a Swift-imported module forces every consumer to turn interop on.
 
 ## Commands
 
@@ -42,14 +43,14 @@ Three layered targets, each a boundary you should not blur:
    (`Tle`, `SGP4`, `Eci`, `DateTime`, etc.). Treat this as third-party code; don't hand-edit it,
    re-vendor with `scripts/update-sgp4.sh <tag-or-commit>`, which records the upstream commit
    in `Sources/sgp4Lib/UPSTREAM_REVISION`.
-2. **`SGP4LibWrapper`** (`Sources/SGP4LibWrapper`) — a thin C++ bridging layer
-   (`Wrapper.hpp`/`Wrapper.cpp`). Its sole job is to catch the C++ exceptions the sgp4 library
-   throws (`TleException`, `SatelliteException`) at the boundary and convert them into
-   `std::optional`, because C++ exceptions cannot propagate into Swift. Any new entry point into
-   the C++ library must follow this same catch-and-return-optional pattern.
-3. **`SGPKit`** (`Sources/SGPKit`) — the public Swift API. Also compiled with
-   `.interoperabilityMode(.Cxx)` since it calls into the wrapper's C++ types directly (e.g.
-   `libsgp4.SGP4`, `libsgp4.DateTime`) rather than being fully isolated from them.
+2. **`SGP4LibWrapper`** (`Sources/SGP4LibWrapper`) — a plain C interface implemented in C++.
+   The header (`include/SGP4LibWrapper.h`) is pure C: `extern "C"` functions, C structs and a
+   closed `SGP4Status` enum, with no C++ includes. `SGP4LibWrapper.cpp` drives the sgp4 objects
+   and catches every exception with `catch (...)`, mapping it to a status, because an exception
+   crossing an `extern "C"` boundary calls `std::terminate`. Any new entry point must follow the
+   same pattern: C types in the header, `catch (...)`, return a status.
+3. **`SGPKit`** (`Sources/SGPKit`) — the public Swift API. Imports `SGP4LibWrapper` as a C module;
+   no C++ interop.
 
 ### Domain model (`Sources/SGPKit`)
 
@@ -59,10 +60,11 @@ Three layered targets, each a boundary you should not blur:
   synthesized (keyed: `title`, `firstLine`, `secondLine`) and has nothing to do with the ASCII
   TLE format. Synthesized decoding bypasses the 69-character check, so build `TLE`s from
   untrusted input via the designated initializers or `TLEDecoder`.
-- **`TLEInterpreter`** — stateless, `Sendable` propagator. `satelliteData(from:date:)` builds a
-  C++ `libsgp4.Tle` and `libsgp4.SGP4` per call (no caching), converts `Date` to `libsgp4.DateTime`
-  in UTC, and maps the resulting ECI position/velocity into geodetic degrees/km/km-h. Failures at
-  the `std::optional` boundary become `TLEInterpreter.Error.tle` / `.satellite`.
+- **`TLEInterpreter`** — stateless, `Sendable` propagator. `satelliteData(from:date:)` calls
+  `SGP4Propagate` with the TLE lines and the date as microseconds since the Unix epoch; the
+  wrapper builds the `Tle` and `SGP4` per call (no caching) and returns geodetic degrees/km/km-h.
+  `SGP4StatusTLEError` / `SGP4StatusSatelliteError` become `TLEInterpreter.Error.tle` /
+  `.satellite`.
 - **`SatelliteData`** — plain output DTO (latitude/longitude in degrees, altitude in km, speed in
   km/h). No validation, no behavior.
 - **`TLEDecoder` / `TLEEncoder`** — the supported way to convert between raw ASCII TLE text and
@@ -78,7 +80,7 @@ Three layered targets, each a boundary you should not blur:
 
 ### Error handling pattern
 
-Exceptions are only caught once, at the C++/Swift seam in `Wrapper.cpp`. Everything above that
+Exceptions are only caught once, at the C++/C seam in `SGP4LibWrapper.cpp`. Everything above that
 (`TLEInterpreter`, `TLEDecoder`, `TLE`) works with Swift-native `Optional`/`throws` and never needs
 to reason about C++ exceptions directly.
 

@@ -29,6 +29,22 @@ final class TLETestUtils {
         )
     }
 
+    static func mismatchedCatalogNumbersTLE() -> TLE {
+        try! TLE(
+            title: "",
+            firstLine: "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47",
+            secondLine: "2 25545  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
+        )
+    }
+
+    static func outOfRangeEccentricityTLE() -> TLE {
+        try! TLE(
+            title: "",
+            firstLine: "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47",
+            secondLine: "2 25544  51.6478 121.2152 9995000  68.5125 263.9959 15.50783143834295"
+        )
+    }
+
     static func getEmptyTLEData() -> Data { Data() }
 
     static func loadOneLineTLEData() -> Data {

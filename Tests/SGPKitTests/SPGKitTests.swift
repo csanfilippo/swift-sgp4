@@ -60,6 +60,24 @@ struct TLEInterpreterTests {
         #expect(data.altitude.isApproximatelyEqual(to: 411.5672031))
     }
 
+    @Test("should throw a TLE error when the propagation engine rejects the TLE")
+    func rejectedTLE() throws {
+        let interpreter = TLEInterpreter()
+
+        #expect(throws: TLEInterpreter.Error.tle) {
+            try interpreter.satelliteData(from: TLETestUtils.mismatchedCatalogNumbersTLE(), date: try self.generateTestDate())
+        }
+    }
+
+    @Test("should throw a satellite error when the orbital elements are out of range")
+    func outOfRangeOrbitalElements() throws {
+        let interpreter = TLEInterpreter()
+
+        #expect(throws: TLEInterpreter.Error.satellite) {
+            try interpreter.satelliteData(from: TLETestUtils.outOfRangeEccentricityTLE(), date: try self.generateTestDate())
+        }
+    }
+
     private func generateTestDate() throws -> Date {
         var calendar = Calendar.current
 

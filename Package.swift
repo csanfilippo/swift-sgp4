@@ -28,17 +28,23 @@ let package = Package(
 			name: "SGPKit",
 			dependencies: ["SGP4LibWrapper"],
             exclude: privacyManifestExclude,
-            resources: privacyManifestResource,
-            swiftSettings: [.interoperabilityMode(.Cxx)]
+            resources: privacyManifestResource
         ),
         .target(
             name: "SGP4LibWrapper",
-            dependencies: ["SGPKitCPP"]
+            dependencies: ["SGPKitCPP"],
+            cxxSettings: [.headerSearchPath("../sgp4Lib/include")]
         ),
+		// SwiftPM puts a target's public headers on the search path of every Swift module above it.
+		// The headers-free target root keeps sgp4's include/ off that path: there its headers would
+		// shadow system ones on case-insensitive filesystems (Util.h for Glibc's <util.h>) and fail
+		// to compile as C.
 		.target(
 			name: "SGPKitCPP",
 			path: "Sources/sgp4Lib",
-			exclude: ["LICENSE", "UPSTREAM_REVISION"]
+			exclude: ["LICENSE", "UPSTREAM_REVISION"],
+			publicHeadersPath: ".",
+			cxxSettings: [.headerSearchPath("include")]
 		),
 		.testTarget(
 			name: "SGPKitTests",
@@ -48,8 +54,7 @@ let package = Package(
 			],
 			resources: [
 				.copy("Fixtures/Mocks")
-			],
-            swiftSettings: [.interoperabilityMode(.Cxx)]
+			]
 		)
 	],
     cxxLanguageStandard: .cxx17
