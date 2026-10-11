@@ -90,6 +90,18 @@ to reason about C++ exceptions directly.
   `isApproximatelyEqual(to:)` rather than exact equality, since SGP4 propagation is
   floating-point-sensitive.
 
+## Changelog and releases
+
+- `CHANGELOG.md` follows Keep a Changelog. Every user-visible change (public API, encoding or
+  decoding behaviour, propagation results, platforms) adds an entry under `## Unreleased` in the
+  same change, grouped as Added, Changed, Fixed or Removed. Breaking entries start with
+  **Breaking:** and say how to migrate. Refactors, tests, CI, documentation and re-vendoring that
+  changes no behaviour get no entry.
+- Tags are bare semantic versions (`4.0.0`, no `v` prefix), annotated, on a commit that also
+  updates the README installation snippet's `from:` version and renames the changelog's
+  `## Unreleased` section to `## <version> – <date>`; that section's text is the GitHub release
+  notes.
+
 ## Commit messages
 
 Keep commits short: a one-line subject plus at most 1-2 short sentences of body. No multi-paragraph
