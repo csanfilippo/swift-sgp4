@@ -37,7 +37,8 @@ let package = Package(
         ),
 		.target(
 			name: "SGPKitCPP",
-			path: "Sources/sgp4Lib"
+			path: "Sources/sgp4Lib",
+			exclude: ["LICENSE", "UPSTREAM_REVISION"]
 		),
 		.testTarget(
 			name: "SGPKitTests",
