@@ -2,7 +2,7 @@
 
 All notable changes to `SGPKit` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Releases up to 3.1.0 are described in the [GitHub releases](https://github.com/csanfilippo/swift-sgp4/releases).
 
-## Unreleased
+## 4.2.0 – 2026-10-11
 
 ### Changed
 
