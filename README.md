@@ -40,7 +40,7 @@ If you want to use SGPKit in any other project that uses [SwiftPM](https://swift
 dependencies: [
   .package(
     url: "https://github.com/csanfilippo/swift-sgp4",
-    from: "4.0.0"
+    from: "4.1.0"
   ),
 ]
 ```
