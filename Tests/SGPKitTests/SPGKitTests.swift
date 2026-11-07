@@ -31,7 +31,14 @@ import Foundation
 
 @Suite("TLEInterpreter")
 struct TLEInterpreterTests {
-    
+
+    /// Inertial (TEME) speed in km/h of the ISS TLE at `generateTestDate()`, from Vallado's Python
+    /// `sgp4` 2.27 (WGS-72): |v| × 3600. Independent of SGPKit, so a regression can't move it.
+    private static let referenceSpeed = 27_626.163929
+
+    /// Two SGP4 implementations agree only up to rounding noise.
+    private static let speedTolerance = 0.01
+
     @Test("should return satellite data")
     func testItShouldReturnTheExpectedSatelliteData() throws {
         let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
@@ -47,7 +54,7 @@ struct TLEInterpreterTests {
         #expect(data.latitude.isApproximatelyEqual(to: expectedLatitude))
         #expect(data.longitude.isApproximatelyEqual(to: expectedLongitude))
         #expect(data.altitude.isApproximatelyEqual(to: expectedAltitude))
-
+        #expect(data.speed.isApproximatelyEqual(to: Self.referenceSpeed, absoluteTolerance: Self.speedTolerance))
     }
 
     @Test("should return satellite data for a TLE with an Alpha-5 catalog number")
@@ -58,6 +65,7 @@ struct TLEInterpreterTests {
         #expect(data.latitude.isApproximatelyEqual(to: 45.2893067))
         #expect(data.longitude.isApproximatelyEqual(to: -136.62764))
         #expect(data.altitude.isApproximatelyEqual(to: 411.5672031))
+        #expect(data.speed.isApproximatelyEqual(to: Self.referenceSpeed, absoluteTolerance: Self.speedTolerance))
     }
 
     @Test("should throw a TLE error when the propagation engine rejects the TLE")
