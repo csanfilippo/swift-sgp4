@@ -81,9 +81,9 @@ public final class TLEDecoder {
     ///
     /// - Parameter data: The raw ASCII-encoded bytes containing one or more TLE triplets.
     /// - Returns: An array of `TLE` values parsed in order.
-    /// - Throws: `DecodingError` if the buffer cannot be decoded as ASCII, the number of lines
-    ///   is not a multiple of three, or any TLE line fails basic validation. The underlying
-    ///   error is a `TLEDecoder.Error` describing the specific reason.
+    /// - Throws: `DecodingError` if the buffer cannot be decoded as ASCII, contains no lines,
+    ///   the number of lines is not a multiple of three, or any TLE line fails basic validation.
+    ///   The underlying error is a `TLEDecoder.Error` describing the specific reason.
     public func decodeCollection(_ data: Data) throws -> [TLE] {
         let decoder = TLEDecoding(data: data)
         
@@ -149,7 +149,7 @@ private final class TLEDecodingUnkeyedContainer: UnkeyedDecodingContainer {
             .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
             .filter { $0.count > 0 }
         
-        guard lines.count % 3 == 0 else {
+        guard !lines.isEmpty, lines.count % 3 == 0 else {
             throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not decodable to ascii.", underlyingError: TLEDecoder.Error.wrongLineCount(lines.count)))
         }
         

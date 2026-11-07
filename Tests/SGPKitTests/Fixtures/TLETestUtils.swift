@@ -47,6 +47,8 @@ final class TLETestUtils {
 
     static func getEmptyTLEData() -> Data { Data() }
 
+    static func getBlankLinesTLEData() -> Data { Data("\n\n  \n".utf8) }
+
     static func loadOneLineTLEData() -> Data {
         let url = Bundle.module.url(
             forResource: "one_line_invalid_tle",

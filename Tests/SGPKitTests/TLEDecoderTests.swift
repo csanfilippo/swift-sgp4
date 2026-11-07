@@ -125,7 +125,33 @@ struct TLEDecoderTests {
         
         expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
-    
+
+    @Test("should raise an exception when decoding an empty array of TLEs")
+    func emptyTLECollection() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.getEmptyTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decodeCollection(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+    }
+
+    @Test("should raise an exception when decoding an array of TLEs made only of blank lines")
+    func blankLinesTLECollection() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.getBlankLinesTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decodeCollection(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+    }
+
     private func expectUnderlyingErrorToBe(decodingError: DecodingError, expectedError: TLEDecoder.Error) {
         if case let DecodingError.dataCorrupted(context) = decodingError, let error = context.underlyingError as? TLEDecoder.Error {
             #expect(error == expectedError)
