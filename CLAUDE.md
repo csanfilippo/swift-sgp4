@@ -56,10 +56,12 @@ Three layered targets, each a boundary you should not blur:
 
 - **`TLE`** — the validated Two-Line Element value type. Enforces the format invariant (both data
   lines exactly 69 characters) in its designated initializers; construction throws
-  `TLEError.linesMustBeSixNineCharactersLong` otherwise. Its `Codable` conformance is fully
-  synthesized (keyed: `title`, `firstLine`, `secondLine`) and has nothing to do with the ASCII
-  TLE format. Synthesized decoding bypasses the 69-character check, so build `TLE`s from
-  untrusted input via the designated initializers or `TLEDecoder`.
+  `TLEError.linesMustBeSixNineCharactersLong` otherwise. Its `Codable` conformance is deprecated
+  (declared in a `@available(*, deprecated)` extension) and goes away in 5.0.0: it was never
+  meant as a storage format, nothing in the package uses it, and the TLE text format through
+  `TLEEncoder`/`TLEDecoder` is the supported way to persist or exchange a `TLE`. Until then it
+  stays fully synthesized (keyed: `title`, `firstLine`, `secondLine`), and synthesized decoding
+  bypasses the 69-character check.
 - **`TLEInterpreter`** — stateless, `Sendable` propagator. `satelliteData(from:date:)` calls
   `SGP4Propagate` with the TLE lines and the date as microseconds since the Unix epoch; the
   wrapper builds the `Tle` and `SGP4` per call (no caching) and returns geodetic degrees/km/km-h.
@@ -94,7 +96,7 @@ to reason about C++ exceptions directly.
 
 - `CHANGELOG.md` follows Keep a Changelog. Every user-visible change (public API, encoding or
   decoding behaviour, propagation results, platforms) adds an entry under `## Unreleased` in the
-  same change, grouped as Added, Changed, Fixed or Removed. Breaking entries start with
+  same change, grouped as Added, Changed, Deprecated, Removed or Fixed. Breaking entries start with
   **Breaking:** and say how to migrate. Refactors, tests, CI, documentation and re-vendoring that
   changes no behaviour get no entry.
 - Tags are bare semantic versions (`4.0.0`, no `v` prefix), annotated, on a commit that also

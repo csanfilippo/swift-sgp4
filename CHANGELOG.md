@@ -4,6 +4,10 @@ All notable changes to `SGPKit` are documented here. The format follows [Keep a 
 
 ## Unreleased
 
+### Deprecated
+
+- `TLE`'s `Codable` conformance, which will be removed in 5.0.0. It was never meant as a storage format and doesn't enforce the 69-character line rule when decoding. To store or exchange TLEs, convert them to and from TLE text with `TLEEncoder` and `TLEDecoder`.
+
 ### Fixed
 
 - `TLEDecoder.decodeCollection(_:)` throws a `DecodingError` for empty or blank input instead of crashing the process.

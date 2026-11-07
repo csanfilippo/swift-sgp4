@@ -38,9 +38,10 @@ public enum TLEError: Error {
 /// 69‑character length) during initialization and throws on failure.
 ///
 /// Codable:
-/// - Fully synthesized: a standard keyed container of `title`, `firstLine`, `secondLine`.
-///   This conformance is unrelated to the ASCII TLE text format; use `TLEDecoder`/
-///   `TLEEncoder` to convert to and from raw TLE text lines.
+/// - Deprecated, to be removed in SGPKit 5.0.0. Use `TLEEncoder`/`TLEDecoder` to convert a
+///   `TLE` to and from TLE text.
+/// - Fully synthesized: a standard keyed container of `title`, `firstLine`, `secondLine`,
+///   unrelated to the ASCII TLE text format.
 /// - Note: Synthesized decoding does not enforce the 69‑character invariant. Use the
 ///   designated initializers (or `TLEDecoder`) when constructing a `TLE` from untrusted data.
 ///
@@ -51,7 +52,7 @@ public enum TLEError: Error {
 /// Equatable:
 /// - Two `TLE` values are equal when all three stored properties are equal using
 ///   exact string comparison.
-public struct TLE: Sendable, Codable, Equatable {
+public struct TLE: Sendable, Equatable {
 
     /// The title (line 0) of the TLE set. May be empty.
     public let title: String
@@ -99,3 +100,6 @@ public struct TLE: Sendable, Codable, Equatable {
         try self.init(title: "", firstLine: firstLine, secondLine: secondLine)
     }
 }
+
+@available(*, deprecated, message: "TLE's Codable conformance will be removed in SGPKit 5.0.0. Use TLEEncoder and TLEDecoder to convert a TLE to and from TLE text.")
+extension TLE: Codable {}
