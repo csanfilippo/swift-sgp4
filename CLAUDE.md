@@ -68,14 +68,11 @@ Three layered targets, each a boundary you should not blur:
 - **`SatelliteData`** — plain output DTO (latitude/longitude in degrees, altitude in km, speed in
   km/h). No validation, no behavior.
 - **`TLEDecoder` / `TLEEncoder`** — the supported way to convert between raw ASCII TLE text and
-  `TLE`. These are *not* generic `Codable` adapters: they implement a bespoke line-based
-  `Encoder`/`Decoder` pair where the "container" is literally the newline-separated text lines.
-  The decoder side never calls `TLE.init(from:)`: `decode` pulls three strings from the unkeyed
-  container itself, and `decodeCollection` goes through the container's generic `decode<T>`,
-  which only accepts `TLE` and constructs it directly. The encoder side *does* rely on
-  `TLE`'s synthesized `encode(to:)`: it appends every `String` written to its keyed container as
-  a line, so the output line order is the **declaration order of `TLE`'s stored properties** —
-  reordering them silently breaks encoding.
+  `TLE`. Neither is a generic `Codable` adapter. `TLEEncoder` joins the three lines of a `TLE`
+  with newlines. `TLEDecoder` is built on a bespoke line-based `Decoder` where the "container" is
+  literally the newline-separated text lines, and it never calls `TLE.init(from:)`: `decode`
+  pulls three strings from the unkeyed container itself, and `decodeCollection` goes through the
+  container's generic `decode<T>`, which only accepts `TLE` and constructs it directly.
 - **`TLEParser`** — deprecated; kept for source compatibility. New code should use `TLEDecoder`.
 
 ### Error handling pattern

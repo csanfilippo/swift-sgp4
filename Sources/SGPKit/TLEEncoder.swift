@@ -22,19 +22,12 @@
  SOFTWARE.
 */
 
-/// TLEEncoder
-///
-/// Provides an `Encoder` implementation specialized for Two-Line Element (TLE) sets.
-/// `TLEEncoder` produces ASCII-encoded `Data` consisting of the lines emitted by a `TLE` value
-/// conforming to `Encodable`. The encoder collects line strings from keyed containers and joins
-/// them with newlines. Arrays and single value containers are intentionally unsupported.
 import Foundation
 
 /// Encodes a `TLE` model into ASCII `Data`.
 ///
-/// This encoder expects the `TLE` type to encode itself using a keyed container that writes
-/// fully formatted TLE lines as `String` values. The resulting `Data` is the newline-separated
-/// concatenation of those strings, encoded as ASCII. If ASCII encoding fails, an error is thrown.
+/// The resulting `Data` is the title, first line and second line of the TLE, separated by
+/// newlines and encoded as ASCII. If ASCII encoding fails, an error is thrown.
 ///
 /// Usage:
 /// ```swift
@@ -56,104 +49,14 @@ public final class TLEEncoder {
     ///
     /// - Parameter tle: The TLE instance to encode.
     /// - Returns: Newline-separated ASCII `Data` representing the encoded TLE lines.
-    /// - Throws: `TLEEncoder.Error.cannotEncodeInASCII` if ASCII conversion fails, or any error thrown by the `TLE` while encoding itself.
+    /// - Throws: `TLEEncoder.Error.cannotEncodeInASCII` if ASCII conversion fails.
     public func encode(_ tle: TLE) throws -> Data {
-        
-        let encoding = TLEEncoding()
-        
-        try tle.encode(to: encoding)
-        
-        guard let data: Data = encoding.data.strings.joined(separator: "\n").data(using: .ascii) else {
+        let text = [tle.title, tle.firstLine, tle.secondLine].joined(separator: "\n")
+
+        guard let data = text.data(using: .ascii) else {
             throw Error.cannotEncodeInASCII
         }
-        
+
         return data
     }
 }
-
-/// Internal `Encoder` that collects string lines for TLE output.
-///
-/// Only keyed containers are supported; unkeyed and single-value containers will trap.
-private struct TLEEncoding: Encoder {
-    var codingPath: [any CodingKey] = []
-    
-    var userInfo: [CodingUserInfoKey : Any] = [:]
-    
-    /// Accumulates encoded TLE lines prior to joining into the final payload.
-    final class Data {
-        private(set) var strings: [String] = []
-        
-        /// Appends a single TLE line string.
-        func encode(value: String) {
-            strings.append(value)
-        }
-    }
-    
-    var data: Data
-    
-    init(to encodedData: Data = Data()) {
-        self.data = encodedData
-    }
-    
-    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-        let container = TLEEncodingContainer<Key>(to: data)
-        container.codingPath = codingPath
-        return KeyedEncodingContainer(container)
-    }
-    
-    func unkeyedContainer() -> any UnkeyedEncodingContainer {
-        // TLE format is line-based and does not support arrays.
-        fatalError("TLEEncoding does not support unkeyed containers (arrays).")
-    }
-    
-    func singleValueContainer() -> any SingleValueEncodingContainer {
-        // TLE format requires keyed lines; single values are not supported.
-        fatalError("TLEEncoding does not support single value containers.")
-    }
-}
-
-
-/// Keyed encoding container that records only `String` values as lines.
-/// Other value types are ignored, and unsupported container operations will trap.
-private final class TLEEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
-    
-    var codingPath: [any CodingKey] = []
-    
-    private let data: TLEEncoding.Data
-    
-    init(to data: TLEEncoding.Data) {
-        self.data = data
-    }
-    
-    func encodeNil(forKey key: Key) throws {}
-    
-    /// Records a line by appending the provided string to the output.
-    func encode(_ value: String, forKey key: Key) throws {
-        data.encode(value: value)
-    }
-    func encode(_ value: Bool, forKey key: Key) throws {}
-    
-    func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable { }
-    
-    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        // Nested keyed containers are not meaningful for flat TLE output.
-        fatalError("Unkeyed encoding not implemented")
-    }
-
-    func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
-        // Unkeyed containers (arrays) are not supported in TLE output.
-        fatalError("Unkeyed encoding not implemented")
-    }
-    
-    func superEncoder() -> any Encoder {
-        // Super encoding is not applicable for this flat encoding format.
-        fatalError("superEncoder not implemented")
-    }
-    
-    func superEncoder(forKey key: Key) -> any Encoder {
-        // Super encoding with key is not applicable for this flat encoding format.
-        fatalError("superEncoder(forKey:) not implemented")
-    }
-    
-}
-
