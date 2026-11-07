@@ -24,14 +24,15 @@
 
 import Foundation
 
-/// Deprecated: Prefer initializing and decoding `TLE` directly using `Codable`.
-@available(*, deprecated, message: "Prefer using TLEDecoder to create a TLE from a buffer")
 /// A parser for Two‑Line Element (TLE) sets.
+///
+/// Deprecated: use `TLEDecoder` to create a `TLE` from a buffer.
 ///
 /// This parser accepts an ASCII‑encoded buffer that contains exactly three lines:
 /// a title line followed by two TLE lines. It validates that each of the two
 /// TLE lines has a length of 69 characters, as specified by the TLE format, and
 /// returns a `TLE` value on success or throws a `TLEParser.Error` on failure.
+@available(*, deprecated, message: "Use TLEDecoder to create a TLE from a buffer.")
 public final class TLEParser: Sendable {
 
     /// Parser errors emitted while converting an ASCII buffer into a `TLE`.
@@ -57,13 +58,13 @@ public final class TLEParser: Sendable {
         case unexpectedError
     }
     
-    /// Deprecated: Use `TLE`'s `Codable` support or direct initializers instead.
-    @available(*, deprecated, message: "Prefer using TLEDecoder to create a TLE from a buffer")
+    /// Deprecated: use `TLEDecoder` instead.
+    @available(*, deprecated, message: "Use TLEDecoder to create a TLE from a buffer.")
     public init() {}
 
-    /// Deprecated: Parse data using `Codable` conformance on `TLE` instead.
-    @available(*, deprecated, message: "Use TLEDecoder.decode(_:, _:) instead of TLEParser.parse(_:) .")
     /// Parses an ASCII buffer containing a single TLE set into a `TLE` value.
+    ///
+    /// Deprecated: use `TLEDecoder.decode(_:)` instead.
     ///
     /// The input must contain exactly three newline‑separated lines:
     /// 1) a title line, 2) line 1 of the TLE, and 3) line 2 of the TLE. The two TLE lines
@@ -88,6 +89,7 @@ public final class TLEParser: Sendable {
     /// let tle = try parser.parse(tleData)
     /// print(tle.title)
     /// ```
+    @available(*, deprecated, message: "Use TLEDecoder.decode(_:) instead of TLEParser.parse(_:).")
     public func parse(_ data: Data) throws -> TLE {
         guard !data.isEmpty else {
             throw Error.empty
