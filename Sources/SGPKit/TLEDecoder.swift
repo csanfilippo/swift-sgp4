@@ -36,7 +36,7 @@ import Foundation
 public final class TLEDecoder {
     
     /// Errors that can occur while validating raw TLE input.
-    enum Error: Swift.Error, Equatable {
+    public enum Error: Swift.Error, Equatable, Sendable {
 
         /// The provided data buffer is not ASCII‑encoded.
         case encodingError

@@ -2,6 +2,12 @@
 
 All notable changes to `SGPKit` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Releases up to 3.1.0 are described in the [GitHub releases](https://github.com/csanfilippo/swift-sgp4/releases).
 
+## Unreleased
+
+### Added
+
+- `TLEDecoder.Error` is now public and `Sendable`, so you can tell why decoding failed: match the `underlyingError` of the thrown `DecodingError.dataCorrupted` against `.encodingError`, `.wrongLineCount(_:)` or `.invalidLineLength`.
+
 ## 4.3.0 – 2026-11-07
 
 ### Deprecated
