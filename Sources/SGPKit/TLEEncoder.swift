@@ -34,7 +34,7 @@ import Foundation
 /// let encoder = TLEEncoder()
 /// let data = try encoder.encode(tle)
 /// ```
-public final class TLEEncoder {
+public final class TLEEncoder: Sendable {
     
     /// Errors that can occur during TLE encoding.
     public enum Error: Swift.Error {

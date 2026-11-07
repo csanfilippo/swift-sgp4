@@ -33,10 +33,10 @@ import Foundation
 ///
 /// This decoder validates the basic TLE constraints (ASCII encoding, line count, and line lengths)
 /// and surfaces failures as `DecodingError` values whose underlying error is `TLEDecoder.Error`.
-public final class TLEDecoder {
+public final class TLEDecoder: Sendable {
     
     /// Errors that can occur while validating raw TLE input.
-    public enum Error: Swift.Error, Equatable, Sendable {
+    public enum Error: Swift.Error, Equatable {
 
         /// The provided data buffer is not ASCII‑encoded.
         case encodingError

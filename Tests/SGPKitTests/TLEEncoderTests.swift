@@ -46,4 +46,18 @@ struct TLEEncoderTests {
         
         #expect(encoded == expected)
     }
+
+    @Test("should encode concurrently from tasks sharing one encoder")
+    func sharedAcrossTasks() async throws {
+        let encoder = TLEEncoder()
+        let (expected, tle) = TLETestUtils.loadValidTLEData()
+
+        let results = try await withThrowingTaskGroup(of: Data.self) { group in
+            group.addTask { try encoder.encode(tle) }
+            group.addTask { try encoder.encode(tle) }
+            return try await group.reduce(into: []) { $0.append($1) }
+        }
+
+        #expect(results == [expected, expected])
+    }
 }

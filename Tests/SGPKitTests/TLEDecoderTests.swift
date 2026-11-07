@@ -29,7 +29,21 @@ import Foundation
 
 @Suite("TLEDecoder")
 struct TLEDecoderTests {
-    
+
+    @Test("should decode concurrently from tasks sharing one decoder")
+    func sharedAcrossTasks() async throws {
+        let decoder = TLEDecoder()
+        let (data, expected) = TLETestUtils.loadValidTLEData()
+
+        let results = try await withThrowingTaskGroup(of: TLE.self) { group in
+            group.addTask { try decoder.decode(data) }
+            group.addTask { try decoder.decode(data) }
+            return try await group.reduce(into: []) { $0.append($1) }
+        }
+
+        #expect(results == [expected, expected])
+    }
+
     @Test("should decode ascii-encoded single LTE")
     func asciiDecoding() throws {
         let decoder = TLEDecoder()

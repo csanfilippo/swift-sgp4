@@ -6,7 +6,8 @@ All notable changes to `SGPKit` are documented here. The format follows [Keep a 
 
 ### Added
 
-- `TLEDecoder.Error` is now public and `Sendable`, so you can tell why decoding failed: match the `underlyingError` of the thrown `DecodingError.dataCorrupted` against `.encodingError`, `.wrongLineCount(_:)` or `.invalidLineLength`.
+- `TLEDecoder` and `TLEEncoder` are now `Sendable`, so one instance can be shared across tasks and actors, for example as a `static let`.
+- `TLEDecoder.Error` is now public, so you can tell why decoding failed: match the `underlyingError` of the thrown `DecodingError.dataCorrupted` against `.encodingError`, `.wrongLineCount(_:)` or `.invalidLineLength`.
 
 ## 4.3.0 – 2026-11-07
 
