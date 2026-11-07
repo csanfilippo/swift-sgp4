@@ -7,29 +7,27 @@ A Swift package to compute satellite positions from two‑line elements (TLE), w
 ## Usage
 
 ```swift
+import Foundation
 import SGPKit
 
-let title = "ISS (ZARYA)"
-let firstLine = "1 25544U 98067A   13165.59097222  .00004759  00000-0  88814-4 0    47"
-let secondLine = "2 25544  51.6478 121.2152 0011003  68.5125 263.9959 15.50783143834295"
-
 let tle = try TLE(
-    title: title,
-    firstLine: firstLine,
-    secondLine: secondLine
+    title: "ISS (ZARYA)",
+    firstLine: "1 25544U 98067A   24060.51736111  .00016717  00000-0  30270-3 0  9991",
+    secondLine: "2 25544  51.6431  57.2546 0004487  58.7657  56.7570 15.49688911439444"
 )
 
 // Instantiate the interpreter (stateless and Sendable)
 let interpreter = TLEInterpreter()
 
-// Compute the satellite state at a given date
-let now: Date = .now
-let data = try interpreter.satelliteData(from: tle, date: now)
+// SGP4 is accurate only near the TLE's epoch, here 2024-02-29 12:25 UTC.
+// Use a recent TLE (from CelesTrak or Space-Track, for example) to compute current positions.
+let epoch = Date(timeIntervalSince1970: 1_709_209_500)
+let data = try interpreter.satelliteData(from: tle, date: epoch)
 
 print(data.latitude)   // degrees
 print(data.longitude)  // degrees
 print(data.altitude)   // kilometers
-print(data.speed)      // km/h
+print(data.speed)      // km/h, inertial frame
 ```
 
 ### Swift Package Manager
