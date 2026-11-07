@@ -34,8 +34,6 @@ public enum TLEError: Error {
 ///
 /// A TLE consists of three lines: an optional title line followed by two
 /// data lines that are each exactly 69 characters long.
-/// This type now validates basic structural rules (non‑empty lines and exact
-/// 69‑character length) during initialization and throws on failure.
 ///
 /// Codable:
 /// - Deprecated, to be removed in SGPKit 5.0.0. Use `TLEEncoder`/`TLEDecoder` to convert a
@@ -46,8 +44,10 @@ public enum TLEError: Error {
 ///   designated initializers (or `TLEDecoder`) when constructing a `TLE` from untrusted data.
 ///
 /// Validation:
-/// - The designated initializers validate non‑empty lines and exact 69‑character
-///   length and will throw on failure.
+/// - The designated initializers check only that both data lines are exactly 69 characters
+///   long, and throw `TLEError.linesMustBeSixNineCharactersLong` otherwise.
+/// - They don't check what the lines contain: `TLEInterpreter` rejects a malformed TLE with
+///   ``TLEInterpreter/Error/tle`` when it propagates it.
 ///
 /// Equatable:
 /// - Two `TLE` values are equal when all three stored properties are equal using

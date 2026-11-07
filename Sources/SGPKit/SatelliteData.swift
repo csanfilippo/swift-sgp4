@@ -24,7 +24,7 @@
 
 import Foundation
 
-/// A snapshot of satellite state in geodetic coordinates (WGS‑84).
+/// A snapshot of satellite state in geodetic coordinates (WGS‑72, the Earth model SGP4 uses).
 ///
 /// Values are expressed in display‑friendly units suitable for UI and basic
 /// computations. This type is a simple data container and performs no
@@ -40,10 +40,11 @@ public struct SatelliteData: Sendable {
 	/// Geodetic longitude in degrees. Range: −180…180.
 	public let longitude: Double
 
-	/// Instantaneous speed magnitude in kilometers per hour (km/h).
+	/// Instantaneous speed in kilometers per hour (km/h), relative to the inertial (TEME) frame
+	/// SGP4 works in, not to the rotating Earth. Speed over the ground is lower.
 	public let speed: Double
 
-	/// Geodetic altitude above the WGS‑84 reference ellipsoid, in kilometers (km).
+	/// Geodetic altitude above the WGS‑72 reference ellipsoid, in kilometers (km).
 	public let altitude: Double
 }
 

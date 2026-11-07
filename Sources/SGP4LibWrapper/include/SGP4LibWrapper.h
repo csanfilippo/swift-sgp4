@@ -40,13 +40,13 @@ typedef enum __attribute__((enum_extensibility(closed))) SGP4Status {
 } SGP4Status;
 
 typedef struct SGP4SatelliteState {
-    /// Degrees, geodetic WGS-84.
+    /// Degrees, geodetic WGS-72.
     double latitude;
-    /// Degrees, geodetic WGS-84.
+    /// Degrees, geodetic WGS-72.
     double longitude;
-    /// Kilometres above the WGS-84 ellipsoid.
+    /// Kilometres above the WGS-72 ellipsoid.
     double altitude;
-    /// Kilometres per hour.
+    /// Kilometres per hour, inertial (TEME) frame.
     double speed;
 } SGP4SatelliteState;
 

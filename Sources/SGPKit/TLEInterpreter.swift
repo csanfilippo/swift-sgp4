@@ -66,24 +66,28 @@ public final class TLEInterpreter: Sendable {
 	///   - date: The instant for which to compute the satellite state. `Date` is an
 	///           absolute timestamp; results correspond to that exact moment.
 	/// - Returns: A `SatelliteData` snapshot with:
-	///   - `latitude`/`longitude` in degrees (geodetic, WGS‑84),
-	///   - `altitude` in kilometers above the WGS‑84 ellipsoid,
-	///   - `speed` in kilometers per hour.
+	///   - `latitude`/`longitude` in degrees (geodetic, WGS‑72),
+	///   - `altitude` in kilometers above the WGS‑72 ellipsoid,
+	///   - `speed` in kilometers per hour, relative to the inertial (TEME) frame.
 	/// - Throws: ``TLEInterpreter/Error`` when propagation fails.
 	///   Specifically, this method throws:
 	///   - ``TLEInterpreter/Error/tle`` when the TLE is invalid or unsupported.
 	///   - ``TLEInterpreter/Error/satellite`` when the satellite state cannot be computed.
 	///
 	/// - Discussion: This method constructs a new SGP4 engine on each call and does
-	///   not cache results. If you need to evaluate many times in quick succession,
-	///   consider reusing the interpreter instance; it is stateless and `Sendable`.
+	///   not cache results.
 	///
 	/// - Example:
 	/// ```swift
 	/// let interpreter = TLEInterpreter()
-	/// let tle = try TLE(firstLine: "valid data here", secondLine: "valid data here")
-	/// let now = Date()
-	/// let state = try interpreter.satelliteData(from: tle, date: now)
+	/// let tle = try TLE(
+	///     title: "ISS (ZARYA)",
+	///     firstLine: "1 25544U 98067A   24060.51736111  .00016717  00000-0  30270-3 0  9991",
+	///     secondLine: "2 25544  51.6431  57.2546 0004487  58.7657  56.7570 15.49688911439444"
+	/// )
+	/// // SGP4 is accurate only near the TLE's epoch, here 2024-02-29 12:25 UTC.
+	/// let epoch = Date(timeIntervalSince1970: 1_709_209_500)
+	/// let state = try interpreter.satelliteData(from: tle, date: epoch)
 	/// print(state.latitude, state.longitude, state.altitude, state.speed)
 	/// ```
 	public func satelliteData(from tle: TLE, date: Date) throws -> SatelliteData {
