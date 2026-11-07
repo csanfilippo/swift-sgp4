@@ -139,6 +139,71 @@ struct TLEDecoderTests {
         expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
+    @Test("should report the line count when decoding an array of TLEs with a wrong number of lines")
+    func wrongLineCountInCollection() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.loadMultipleNotValidTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decodeCollection(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(8))
+    }
+
+    @Test("should raise an exception when decoding an array of TLEs from utf8-encoded data")
+    func utf8CollectionDecodingNotSupported() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.loadUTF8InvalidTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decodeCollection(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
+    }
+
+    @Test("should raise an exception when decoding an array of TLEs with lines shorter than 69 characters")
+    func lessThanSixtyNineCharactersInCollection() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.loadShorterLineLengthTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decodeCollection(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+    }
+
+    @Test("should raise an exception when decoding an array of TLEs with lines longer than 69 characters")
+    func moreThanSixtyNineCharactersInCollection() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.loadLongerLineLengthTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decodeCollection(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+    }
+
+    @Test("should raise an exception when decoding more than one TLE as a single TLE")
+    func multipleTLEsDecodedAsSingle() throws {
+        let decoder = TLEDecoder()
+
+        let (data, _) = TLETestUtils.loadThreeValidTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decode(data)
+        }
+
+        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(9))
+    }
+
     @Test("should raise an exception when decoding an array of TLEs made only of blank lines")
     func blankLinesTLECollection() throws {
         let decoder = TLEDecoder()

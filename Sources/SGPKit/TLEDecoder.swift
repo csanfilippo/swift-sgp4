@@ -60,18 +60,13 @@ public final class TLEDecoder {
     ///   exactly three lines, or if the TLE lines do not meet length constraints. The
     ///   underlying error is a `TLEDecoder.Error` describing the specific reason.
     public func decode(_ data: Data) throws -> TLE {
-        let decoder = TLEDecoding(data: data)
-        var container = try decoder.unkeyedContainer()
+        let lines = try textLines(in: data)
 
-        let title = try container.decode(String.self)
-        let firstLine = try container.decode(String.self)
-        let secondLine = try container.decode(String.self)
-
-        do {
-            return try TLE(title: title, firstLine: firstLine, secondLine: secondLine)
-        } catch TLEError.linesMustBeSixNineCharactersLong {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: TLEDecoder.Error.invalidLineLength))
+        guard lines.count == 3 else {
+            throw corruptedData(.wrongLineCount(lines.count))
         }
+
+        return try tle(title: lines[0], firstLine: lines[1], secondLine: lines[2])
     }
     
     /// Decodes one or more TLEs from an ASCII buffer.
@@ -85,136 +80,37 @@ public final class TLEDecoder {
     ///   the number of lines is not a multiple of three, or any TLE line fails basic validation.
     ///   The underlying error is a `TLEDecoder.Error` describing the specific reason.
     public func decodeCollection(_ data: Data) throws -> [TLE] {
-        let decoder = TLEDecoding(data: data)
-        
-        return try [TLE](from: decoder)
-    }
-}
+        let lines = try textLines(in: data)
 
-private final class TLEDecoding: Decoder {
-    var codingPath: [any CodingKey] = []
-    
-    var userInfo: [CodingUserInfoKey : Any] = [:]
-    
-    private let data: Data
-    
-    init(data: Data) {
-        self.data = data
-    }
-    
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        throw DecodingError.typeMismatch(
-            KeyedDecodingContainer<Key>.self,
-            .init(
-                codingPath: codingPath,
-                debugDescription: "TLEDecoding does not support keyed decoding."
-            )
-        )
-    }
-    
-    func singleValueContainer() throws -> any SingleValueDecodingContainer {
-        throw DecodingError.dataCorrupted(
-            DecodingError.Context(
-                codingPath: codingPath,
-                debugDescription: "TLEDecoding does not support single-value decoding."
-            )
-        )
-    }
-    
-    func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
-        try TLEDecodingUnkeyedContainer(data: data)
-    }
-}
-
-private final class TLEDecodingUnkeyedContainer: UnkeyedDecodingContainer {
-   
-    private(set) var codingPath: [any CodingKey] = []
-    
-    let count: Int?
-    
-    private(set) var isAtEnd: Bool = false
-    
-    private(set) var currentIndex: Int = 0
-    
-    private let lines: [String]
-    
-    init(data: Data) throws {
-                
-        guard let parsed = String(data: data, encoding: .ascii) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not decodable to ascii.", underlyingError: TLEDecoder.Error.encodingError))
-        }
-        
-        lines = parsed
-            .split(whereSeparator: {$0.isNewline})
-            .map({ String($0).trimmingCharacters(in: .whitespacesAndNewlines) })
-            .filter { $0.count > 0 }
-        
         guard !lines.isEmpty, lines.count % 3 == 0 else {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not decodable to ascii.", underlyingError: TLEDecoder.Error.wrongLineCount(lines.count)))
+            throw corruptedData(.wrongLineCount(lines.count))
         }
-        
-        count = lines.count / 3
-    }
-    
-    func decodeNil() throws -> Bool {
-        false
-    }
-    
-    func decode(_ type: String.Type) throws -> String {
-        
-        guard lines.count == 3 else {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not decodable.", underlyingError: TLEDecoder.Error.wrongLineCount(lines.count)))
-        }
-        
-        let currentLine = lines[currentIndex]
 
-        currentIndex += 1
-        
-        if let count, currentIndex == count {
-            isAtEnd = true
+        return try stride(from: 0, to: lines.count, by: 3).map { start in
+            try tle(title: lines[start], firstLine: lines[start + 1], secondLine: lines[start + 2])
         }
-        
-        return currentLine
     }
-    
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
-        
-        guard type == TLE.self else {
-            throw DecodingError.typeMismatch(type, .init(codingPath: [], debugDescription: "Unsupported type for TLE: \(type)"))
+
+    private func textLines(in data: Data) throws -> [String] {
+        guard let text = String(data: data, encoding: .ascii) else {
+            throw corruptedData(.encodingError)
         }
-        
-        let title = lines[3 * currentIndex]
-        let firstLine = lines[3 * currentIndex + 1]
-        let secondLine = lines[3 * currentIndex + 2]
-        
-        guard firstLine.count == 69, secondLine.count == 69 else {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: TLEDecoder.Error.invalidLineLength))
+
+        return text
+            .split(whereSeparator: { $0.isNewline })
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private func tle(title: String, firstLine: String, secondLine: String) throws -> TLE {
+        do {
+            return try TLE(title: title, firstLine: firstLine, secondLine: secondLine)
+        } catch TLEError.linesMustBeSixNineCharactersLong {
+            throw corruptedData(.invalidLineLength)
         }
-        
-        let tle = try TLE(
-            title: title,
-            firstLine: firstLine,
-            secondLine: secondLine
-        )
-        
-        currentIndex += 1
-        
-        if currentIndex == count! {
-            isAtEnd = true
-        }
-        
-        return tle as! T
     }
-    
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError("Nested containers not supported for TLE")
-    }
-    
-    func nestedUnkeyedContainer() throws -> any UnkeyedDecodingContainer {
-        fatalError("Nested unkeyed containers not supported for TLE")
-    }
-    
-    func superDecoder() throws -> any Decoder {
-        fatalError("Nested containers not supported for TLE")
+
+    private func corruptedData(_ reason: Error) -> DecodingError {
+        .dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: reason))
     }
 }
