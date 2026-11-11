@@ -157,20 +157,13 @@ public final class TLEDecoder: Sendable {
 
         for candidateSet in candidateSets(in: lines) {
             do {
-
-                if candidateSet.firstLine == nil {
+                switch (candidateSet.firstLine, candidateSet.secondLine) {
+                case (nil, _):
                     rejections.append(.init(reason: .missingFirstLine))
-                    continue
-                }
-
-                if candidateSet.secondLine == nil {
+                case (_, nil):
                     rejections.append(.init(reason: .missingSecondLine))
-                    continue
-                }
-
-                if let firstLine = candidateSet.firstLine, let secondLine = candidateSet.secondLine {
-                    let tle = try TLE(title: candidateSet.title, firstLine: firstLine, secondLine: secondLine)
-                    tles.append(tle)
+                case let (firstLine?, secondLine?):
+                    tles.append(try TLE(title: candidateSet.title, firstLine: firstLine, secondLine: secondLine))
                 }
             } catch TLEError.linesMustBeSixNineCharactersLong {
                 rejections.append(.init(reason: .invalidLineLength))
