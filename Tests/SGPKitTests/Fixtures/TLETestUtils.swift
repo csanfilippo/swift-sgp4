@@ -163,4 +163,16 @@ final class TLETestUtils {
 
         return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[1]])
     }
+
+    static func loadFeedWithMissingFirstLineTLEData() -> (Data, [TLE]) {
+        let url = Bundle.module.url(
+            forResource: "feed_with_missing_first_line_tle",
+            withExtension: "txt",
+            subdirectory: "Mocks"
+        )!
+
+        let (_, threeValidTLEs) = loadThreeValidTLEData()
+
+        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+    }
 }

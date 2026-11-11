@@ -30,6 +30,7 @@ public struct TLEDecodingReport: Sendable {
 
         public enum Reason: Sendable {
             case invalidLineLength
+            case missingFirstLine
             case missingSecondLine
         }
 
@@ -156,6 +157,12 @@ public final class TLEDecoder: Sendable {
 
         for candidateSet in candidateSets(in: lines) {
             do {
+
+                if candidateSet.firstLine == nil {
+                    rejections.append(.init(reason: .missingFirstLine))
+                    continue
+                }
+
                 if candidateSet.secondLine == nil {
                     rejections.append(.init(reason: .missingSecondLine))
                     continue
