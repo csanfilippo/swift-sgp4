@@ -87,7 +87,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
     }
     
     @Test("should raise an exception when decoding a TLE with lines shorter than 69 characters")
@@ -100,7 +100,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
     }
     
     @Test("should raise an exception when decoding a TLE with lines longer than 69 characters")
@@ -124,7 +124,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(1))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(1))
     }
     
     @Test("should raise an exception when decoding an empty TLE")
@@ -137,7 +137,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
     @Test("should raise an exception when decoding an empty array of TLEs")
@@ -150,7 +150,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
     @Test("should report the line count when decoding an array of TLEs with a wrong number of lines")
@@ -163,7 +163,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(8))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(8))
     }
 
     @Test("should raise an exception when decoding an array of TLEs from utf8-encoded data")
@@ -176,7 +176,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
     }
 
     @Test("should raise an exception when decoding an array of TLEs with lines shorter than 69 characters")
@@ -189,7 +189,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
     }
 
     @Test("should raise an exception when decoding an array of TLEs with lines longer than 69 characters")
@@ -202,7 +202,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
     }
 
     @Test("should raise an exception when decoding more than one TLE as a single TLE")
@@ -215,7 +215,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(9))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(9))
     }
 
     @Test("should raise an exception when decoding an array of TLEs made only of blank lines")
@@ -228,12 +228,10 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
-    
-
-    private func expectUnderlyingErrorToBe(decodingError: DecodingError, expectedError: TLEDecoder.Error) {
+    private static func expectUnderlyingErrorToBe(decodingError: DecodingError, expectedError: TLEDecoder.Error) {
         if case let DecodingError.dataCorrupted(context) = decodingError, let error = context.underlyingError as? TLEDecoder.Error {
             #expect(error == expectedError)
         } else {
@@ -271,6 +269,19 @@ extension TLEDecoderTests {
 
             #expect(report.tles.isEmpty)
             #expect(report.rejections.isEmpty)
+        }
+
+        @Test("should throw a decoding error when decoding a non-ASCII feed")
+        func nonASCIIFeed() throws {
+            let decoder = TLEDecoder()
+
+            let data = TLETestUtils.loadUTF8InvalidTLEData()
+
+            let thrownError = #expect(throws: DecodingError.self) {
+                try decoder.decodeValidSets(data)
+            }
+
+            TLEDecoderTests.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
         }
     }
 }
