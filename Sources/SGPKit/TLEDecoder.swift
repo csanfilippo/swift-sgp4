@@ -30,6 +30,7 @@ public struct TLEDecodingReport: Sendable {
 
         public enum Reason: Sendable {
             case invalidLineLength
+            case missingSecondLine
         }
 
         public let reason: Reason
@@ -117,19 +118,36 @@ public final class TLEDecoder: Sendable {
         var rejections: [TLEDecodingReport.RejectedSet] = []
         var tles: [TLE] = []
 
-        for start in stride(from: 0, to: lines.count, by: 3) {
+
+        var index = 0
+
+        repeat {
             do {
+                let title = lines[index]
+                let firstLine = lines[index + 1]
+                let secondLine = lines[index + 2]
+
+                if !secondLine.hasPrefix("2 ") {
+                    rejections.append(.init(reason: .missingSecondLine))
+                    index += 2
+                    continue
+                }
+
                 let tle = try TLE(
-                    title: lines[start],
-                    firstLine: lines[start + 1],
-                    secondLine: lines[start + 2]
+                    title: title,
+                    firstLine: firstLine,
+                    secondLine: secondLine
                 )
 
                 tles.append(tle)
+                index += 3
             } catch TLEError.linesMustBeSixNineCharactersLong {
                 rejections.append(.init(reason: .invalidLineLength))
+                index += 3
             }
-        }
+
+
+        } while index < lines.count
 
         return .init(tles: tles, rejections: rejections)
     }
