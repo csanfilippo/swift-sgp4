@@ -123,11 +123,17 @@ public final class TLEDecoder: Sendable {
 
         repeat {
             do {
-                let title = lines[index]
-                let firstLine = lines[index + 1]
-                let secondLine = lines[index + 2]
 
-                if !secondLine.hasPrefix("2 ") {
+                let title = lines[index]
+                let firstLine = index + 1 < lines.count ? lines[index + 1] : nil
+                let secondLine = index + 2 < lines.count ? lines[index + 2] : nil
+
+                if secondLine == nil {
+                    rejections.append(.init(reason: .missingSecondLine))
+                    break
+                }
+
+                if let secondLine, !secondLine.hasPrefix("2 ") {
                     rejections.append(.init(reason: .missingSecondLine))
                     index += 2
                     continue
@@ -135,8 +141,8 @@ public final class TLEDecoder: Sendable {
 
                 let tle = try TLE(
                     title: title,
-                    firstLine: firstLine,
-                    secondLine: secondLine
+                    firstLine: firstLine!,
+                    secondLine: secondLine!
                 )
 
                 tles.append(tle)

@@ -151,4 +151,16 @@ final class TLETestUtils {
 
         return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
     }
+
+    static func loadFeedEndingWithMissingSecondLineTLEData() -> (Data, [TLE]) {
+        let url = Bundle.module.url(
+            forResource: "feed_ending_with_missing_second_line_tle",
+            withExtension: "txt",
+            subdirectory: "Mocks"
+        )!
+
+        let (_, threeValidTLEs) = loadThreeValidTLEData()
+
+        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[1]])
+    }
 }
