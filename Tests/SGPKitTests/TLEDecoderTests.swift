@@ -231,6 +231,8 @@ struct TLEDecoderTests {
         expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
+    
+
     private func expectUnderlyingErrorToBe(decodingError: DecodingError, expectedError: TLEDecoder.Error) {
         if case let DecodingError.dataCorrupted(context) = decodingError, let error = context.underlyingError as? TLEDecoder.Error {
             #expect(error == expectedError)
@@ -239,4 +241,23 @@ struct TLEDecoderTests {
         }
     }
     
+}
+
+extension TLEDecoderTests {
+
+    @Suite("decodeValidSets")
+    struct DecodeValidSets {
+
+        @Test("should decode every set of a valid feed, in order, with no rejections")
+        func validFeed() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadThreeValidTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.isEmpty)
+        }
+    }
 }

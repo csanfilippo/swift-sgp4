@@ -24,6 +24,16 @@
 
 import Foundation
 
+public struct TLEDecodingReport: Sendable {
+
+    public struct RejectedSet: Sendable {
+
+    }
+
+    public let tles: [TLE]
+    public let rejections: [RejectedSet]
+}
+
 /// A decoder that parses a Two-Line Element set (TLE) from an ASCII data buffer into a `TLE`.
 ///
 /// A TLE consists of three lines:
@@ -89,6 +99,11 @@ public final class TLEDecoder: Sendable {
         return try stride(from: 0, to: lines.count, by: 3).map { start in
             try tle(title: lines[start], firstLine: lines[start + 1], secondLine: lines[start + 2])
         }
+    }
+
+    public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
+        let collection = try decodeCollection(data)
+        return .init(tles: collection, rejections: [])
     }
 
     private func textLines(in data: Data) throws -> [String] {
