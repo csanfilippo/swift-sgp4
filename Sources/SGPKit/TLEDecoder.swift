@@ -50,7 +50,13 @@ public struct TLEDecodingReport: Sendable {
 /// This decoder validates the basic TLE constraints (ASCII encoding, line count, and line lengths)
 /// and surfaces failures as `DecodingError` values whose underlying error is `TLEDecoder.Error`.
 public final class TLEDecoder: Sendable {
-    
+
+    private struct CandidateSet {
+        let title: String
+        let firstLine: String?
+        let secondLine: String?
+    }
+
     /// Errors that can occur while validating raw TLE input.
     public enum Error: Swift.Error, Equatable {
 
@@ -107,8 +113,38 @@ public final class TLEDecoder: Sendable {
         }
     }
 
-    public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
+    private func line(at cursor: Int, in lines: [String], withPrefix prefix: String) -> String? {
+        guard cursor < lines.count else {
+            return nil
+        }
 
+        let line = lines[cursor]
+
+        return line.hasPrefix(prefix) ? line : nil
+    }
+
+    private func candidateSets(in lines: [String]) -> [CandidateSet] {
+        var candidateSets: [CandidateSet] = []
+
+        var cursor = 0
+
+        repeat {
+            let title = lines[cursor]
+
+            cursor += 1
+
+            let firstLine = line(at: cursor, in: lines, withPrefix: "1 ")
+            if firstLine != nil { cursor += 1 }
+            let secondLine = line(at: cursor, in: lines, withPrefix: "2 ")
+            if secondLine != nil { cursor += 1 }
+
+            candidateSets.append(.init(title: title, firstLine: firstLine, secondLine: secondLine))
+        } while cursor < lines.count
+
+        return candidateSets
+    }
+
+    public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
         let lines = try textLines(in: data)
 
         guard !lines.isEmpty else {
@@ -118,42 +154,21 @@ public final class TLEDecoder: Sendable {
         var rejections: [TLEDecodingReport.RejectedSet] = []
         var tles: [TLE] = []
 
-
-        var index = 0
-
-        repeat {
+        for candidateSet in candidateSets(in: lines) {
             do {
-
-                let title = lines[index]
-                let firstLine = index + 1 < lines.count ? lines[index + 1] : nil
-                let secondLine = index + 2 < lines.count ? lines[index + 2] : nil
-
-                if secondLine == nil {
+                if candidateSet.secondLine == nil {
                     rejections.append(.init(reason: .missingSecondLine))
-                    break
-                }
-
-                if let secondLine, !secondLine.hasPrefix("2 ") {
-                    rejections.append(.init(reason: .missingSecondLine))
-                    index += 2
                     continue
                 }
 
-                let tle = try TLE(
-                    title: title,
-                    firstLine: firstLine!,
-                    secondLine: secondLine!
-                )
-
-                tles.append(tle)
-                index += 3
+                if let firstLine = candidateSet.firstLine, let secondLine = candidateSet.secondLine {
+                    let tle = try TLE(title: candidateSet.title, firstLine: firstLine, secondLine: secondLine)
+                    tles.append(tle)
+                }
             } catch TLEError.linesMustBeSixNineCharactersLong {
                 rejections.append(.init(reason: .invalidLineLength))
-                index += 3
             }
-
-
-        } while index < lines.count
+        }
 
         return .init(tles: tles, rejections: rejections)
     }
