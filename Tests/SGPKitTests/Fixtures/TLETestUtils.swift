@@ -127,4 +127,16 @@ final class TLETestUtils {
         
         return try! Data(contentsOf: url)
     }
+
+    static func loadFeedWithShortLineTLEData() -> (Data, [TLE]) {
+        let url = Bundle.module.url(
+            forResource: "feed_with_short_line_tle",
+            withExtension: "txt",
+            subdirectory: "Mocks"
+        )!
+
+        let (_, threeValidTLEs) = loadThreeValidTLEData()
+
+        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+    }
 }

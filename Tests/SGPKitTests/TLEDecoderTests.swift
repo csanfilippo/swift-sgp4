@@ -283,5 +283,17 @@ extension TLEDecoderTests {
 
             TLEDecoderTests.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
         }
+
+        @Test("should reject a set with a data line that is not 69 characters and decode the sets around it")
+        func setWithInvalidLineLength() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithShortLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.invalidLineLength])
+        }
     }
 }

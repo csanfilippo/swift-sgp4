@@ -28,6 +28,11 @@ public struct TLEDecodingReport: Sendable {
 
     public struct RejectedSet: Sendable {
 
+        public enum Reason: Sendable {
+            case invalidLineLength
+        }
+
+        public let reason: Reason
     }
 
     public let tles: [TLE]
@@ -109,8 +114,24 @@ public final class TLEDecoder: Sendable {
             return .init(tles: [], rejections: [])
         }
 
-        let collection = try decodeCollection(data)
-        return .init(tles: collection, rejections: [])
+        var rejections: [TLEDecodingReport.RejectedSet] = []
+        var tles: [TLE] = []
+
+        for start in stride(from: 0, to: lines.count, by: 3) {
+            do {
+                let tle = try TLE(
+                    title: lines[start],
+                    firstLine: lines[start + 1],
+                    secondLine: lines[start + 2]
+                )
+
+                tles.append(tle)
+            } catch TLEError.linesMustBeSixNineCharactersLong {
+                rejections.append(.init(reason: .invalidLineLength))
+            }
+        }
+
+        return .init(tles: tles, rejections: rejections)
     }
 
     private func textLines(in data: Data) throws -> [String] {
