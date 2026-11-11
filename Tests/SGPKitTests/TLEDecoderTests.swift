@@ -259,5 +259,18 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.isEmpty)
         }
+
+        @Test(
+            "should decode an empty or blank feed to an empty report",
+            arguments: [TLETestUtils.getEmptyTLEData(), TLETestUtils.getBlankLinesTLEData()]
+        )
+        func emptyFeed(data: Data) throws {
+            let decoder = TLEDecoder()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles.isEmpty)
+            #expect(report.rejections.isEmpty)
+        }
     }
 }

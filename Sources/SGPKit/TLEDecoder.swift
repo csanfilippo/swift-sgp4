@@ -102,6 +102,13 @@ public final class TLEDecoder: Sendable {
     }
 
     public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
+
+        let lines = try textLines(in: data)
+
+        guard !lines.isEmpty else {
+            return .init(tles: [], rejections: [])
+        }
+
         let collection = try decodeCollection(data)
         return .init(tles: collection, rejections: [])
     }
