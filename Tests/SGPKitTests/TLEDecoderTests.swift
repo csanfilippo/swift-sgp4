@@ -331,5 +331,17 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.map(\.reason) == [.missingFirstLine])
         }
+
+        @Test("should reject data lines with no title before them as missing a title")
+        func setMissingTitle() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithMissingTitleTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingTitle])
+        }
     }
 }

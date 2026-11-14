@@ -175,4 +175,16 @@ final class TLETestUtils {
 
         return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
     }
+
+    static func loadFeedWithMissingTitleTLEData() -> (Data, [TLE]) {
+        let url = Bundle.module.url(
+            forResource: "feed_with_missing_title_tle",
+            withExtension: "txt",
+            subdirectory: "Mocks"
+        )!
+
+        let (_, threeValidTLEs) = loadThreeValidTLEData()
+
+        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+    }
 }

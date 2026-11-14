@@ -32,6 +32,7 @@ public struct TLEDecodingReport: Sendable {
             case invalidLineLength
             case missingFirstLine
             case missingSecondLine
+            case missingTitle
         }
 
         public let reason: Reason
@@ -53,7 +54,7 @@ public struct TLEDecodingReport: Sendable {
 public final class TLEDecoder: Sendable {
 
     private struct CandidateSet {
-        let title: String
+        let title: String?
         let firstLine: String?
         let secondLine: String?
     }
@@ -130,10 +131,8 @@ public final class TLEDecoder: Sendable {
         var cursor = 0
 
         repeat {
-            let title = lines[cursor]
-
-            cursor += 1
-
+            let title = lines[cursor].isTitle ? lines[cursor] : nil
+            if title != nil { cursor += 1 }
             let firstLine = line(at: cursor, in: lines, withPrefix: "1 ")
             if firstLine != nil { cursor += 1 }
             let secondLine = line(at: cursor, in: lines, withPrefix: "2 ")
@@ -157,13 +156,15 @@ public final class TLEDecoder: Sendable {
 
         for candidateSet in candidateSets(in: lines) {
             do {
-                switch (candidateSet.firstLine, candidateSet.secondLine) {
-                case (nil, _):
+                switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
+                case (nil, _, _):
+                    rejections.append(.init(reason: .missingTitle))
+                case (_, nil, _):
                     rejections.append(.init(reason: .missingFirstLine))
-                case (_, nil):
+                case (_, _, nil):
                     rejections.append(.init(reason: .missingSecondLine))
-                case let (firstLine?, secondLine?):
-                    tles.append(try TLE(title: candidateSet.title, firstLine: firstLine, secondLine: secondLine))
+                case let (title?, firstLine?, secondLine?):
+                    tles.append(try TLE(title: title, firstLine: firstLine, secondLine: secondLine))
                 }
             } catch TLEError.linesMustBeSixNineCharactersLong {
                 rejections.append(.init(reason: .invalidLineLength))
@@ -194,5 +195,11 @@ public final class TLEDecoder: Sendable {
 
     private func corruptedData(_ reason: Error) -> DecodingError {
         .dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: reason))
+    }
+}
+
+private extension String {
+    var isTitle: Bool {
+        !hasPrefix("1 ") && !hasPrefix("2 ")
     }
 }
