@@ -2,6 +2,12 @@
 
 All notable changes to `SGPKit` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/). Releases up to 3.1.0 are described in the [GitHub releases](https://github.com/csanfilippo/swift-sgp4/releases).
 
+## Unreleased
+
+### Added
+
+- `TLEDecoder.decodeValidSets(_:)` decodes a TLE feed without letting one damaged set discard the others (#16). It returns a `TLEDecodingReport` with the decoded `tles` and the `rejections`, each giving its `reason`, `title` and the `lineNumber` where the set starts. Sets are recognized by their `1 ` and `2 ` line prefixes, so a set with a missing line no longer shifts the sets after it. `decodeCollection(_:)` keeps throwing on the first bad set.
+
 ## 4.4.0 – 2026-11-07
 
 ### Added
