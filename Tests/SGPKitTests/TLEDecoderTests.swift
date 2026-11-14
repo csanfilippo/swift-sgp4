@@ -367,5 +367,17 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.map(\.reason) == [.dataLinesOutOfOrder])
         }
+
+        @Test("should reject a title followed directly by another title as missing both data lines")
+        func loneTitle() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithLoneTitleTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingDataLines])
+        }
     }
 }

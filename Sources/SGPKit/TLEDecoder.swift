@@ -34,6 +34,7 @@ public struct TLEDecodingReport: Sendable {
             case missingSecondLine
             case missingTitle
             case dataLinesOutOfOrder
+            case missingDataLines
         }
 
         public let reason: Reason
@@ -188,6 +189,8 @@ public final class TLEDecoder: Sendable {
         for candidateSet in candidateSets(in: lines) {
             do {
                 switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
+                case (_?, nil, nil):
+                    rejections.append(.init(reason: .missingDataLines))
                 case (nil, _, _):
                     rejections.append(.init(reason: .missingTitle))
                 case (_, nil, _):
