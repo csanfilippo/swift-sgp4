@@ -3,14 +3,8 @@ import Foundation
 
 final class TLETestUtils {
     static func loadValidTLEData() -> (Data, TLE) {
-        let url = Bundle.module.url(
-            forResource: "valid_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         return (
-            try! Data(contentsOf: url),
+            fixture("valid_tle"),
             try! TLE(
                 title: "ISS (ZARYA)",
                 firstLine: "1 11416U 79057A   80003.44366214  .00000727  00000-0  33454-3 0   878",
@@ -50,54 +44,25 @@ final class TLETestUtils {
     static func getBlankLinesTLEData() -> Data { Data("\n\n  \n".utf8) }
 
     static func loadOneLineTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "one_line_invalid_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
-        return try! Data(contentsOf: url)
+        fixture("one_line_invalid_tle")
     }
     
     static func loadLongerLineLengthTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "invalid_longer_line_length_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
-        return try! Data(contentsOf: url)
+        fixture("invalid_longer_line_length_tle")
     }
     
     static func loadShorterLineLengthTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "invalid_shorter_line_length_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
-        return try! Data(contentsOf: url)
+        fixture("invalid_shorter_line_length_tle")
     }
     
     static func loadUTF8InvalidTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "utf8_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-        
-        return try! Data(contentsOf: url)
+        fixture("utf8_tle")
     }
     
     static func loadThreeValidTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "three_valid_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
         
         return (
-            try! Data(contentsOf: url),
+            fixture("three_valid_tle"),
             [
                 try! TLE(
                     title: "ISS (ZARYA)",
@@ -119,177 +84,93 @@ final class TLETestUtils {
     }
     
     static func loadMultipleNotValidTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "multiple_not_valid_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-        
-        return try! Data(contentsOf: url)
+        fixture("multiple_not_valid_tle")
     }
 
     static func loadFeedWithoutTitlesTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_without_titles_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
         return (
-            try! Data(contentsOf: url),
+            fixture("feed_without_titles_tle"),
             threeValidTLEs.map(withoutTitle)
         )
     }
 
     static func loadFeedWithShortLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_short_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_short_line_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWithMissingSecondLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_missing_second_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_missing_second_line_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedEndingWithMissingSecondLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_ending_with_missing_second_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[1]])
+        return (fixture("feed_ending_with_missing_second_line_tle"), [threeValidTLEs[0], threeValidTLEs[1]])
     }
 
     static func loadFeedWithMissingFirstLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_missing_first_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_missing_first_line_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWithTitlelessSetTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_titleless_set_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
         return (
-            try! Data(contentsOf: url),
+            fixture("feed_with_titleless_set_tle"),
             [threeValidTLEs[0], withoutTitle(threeValidTLEs[1]), threeValidTLEs[2]]
         )
     }
 
     static func loadFeedEndingWithTitlelessSetTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_ending_with_titleless_set_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
         return (
-            try! Data(contentsOf: url),
+            fixture("feed_ending_with_titleless_set_tle"),
             [threeValidTLEs[0], threeValidTLEs[1], withoutTitle(threeValidTLEs[2])]
         )
     }
 
     static func loadFeedWithTitlelessSetWithShortLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_titleless_set_with_short_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_titleless_set_with_short_line_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWithTitlelessFirstLineWithoutSecondLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_titleless_first_line_without_second_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_titleless_first_line_without_second_line_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWithTitlelessSetOutOfOrderTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_titleless_set_out_of_order_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_titleless_set_out_of_order_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWith3LETitlesTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_3le_titles_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
         return (
-            try! Data(contentsOf: url),
+            fixture("feed_with_3le_titles_tle"),
             threeValidTLEs.map { try! TLE(title: "0 \($0.title)", firstLine: $0.firstLine, secondLine: $0.secondLine) }
         )
     }
 
     static func loadValidTitlelessTLEData() -> (Data, TLE) {
-        let url = Bundle.module.url(
-            forResource: "valid_titleless_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
-        return (try! Data(contentsOf: url), titlelessTLE())
+        return (fixture("valid_titleless_tle"), titlelessTLE())
     }
 
     static func loadTwoLinesStartingWithTitleTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "two_lines_starting_with_title_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
-        return try! Data(contentsOf: url)
+        fixture("two_lines_starting_with_title_tle")
     }
 
     static func titlelessTLE() -> TLE {
@@ -301,60 +182,30 @@ final class TLETestUtils {
     }
 
     static func loadFeedWithDataLinesOutOfOrderTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_data_lines_out_of_order_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_data_lines_out_of_order_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWithLoneTitleTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_lone_title_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_lone_title_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadFeedWithBlankLinesAndMissingSecondLineTLEData() -> Data {
-        let url = Bundle.module.url(
-            forResource: "feed_with_blank_lines_and_missing_second_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
-        return try! Data(contentsOf: url)
+        fixture("feed_with_blank_lines_and_missing_second_line_tle")
     }
 
     static func loadFeedWithShortFirstLineAndMissingSecondLineTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "feed_with_short_first_line_and_missing_second_line_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         let (_, threeValidTLEs) = loadThreeValidTLEData()
 
-        return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
+        return (fixture("feed_with_short_first_line_and_missing_second_line_tle"), [threeValidTLEs[0], threeValidTLEs[2]])
     }
 
     static func loadIssue16FeedTLEData() -> (Data, [TLE]) {
-        let url = Bundle.module.url(
-            forResource: "issue_16_feed_tle",
-            withExtension: "txt",
-            subdirectory: "Mocks"
-        )!
-
         return (
-            try! Data(contentsOf: url),
+            fixture("issue_16_feed_tle"),
             [
                 try! TLE(
                     title: "ISS (ZARYA)",
@@ -368,5 +219,11 @@ final class TLETestUtils {
                 )
             ]
         )
+    }
+
+    private static func fixture(_ name: String) -> Data {
+        let url = Bundle.module.url(forResource: name, withExtension: "txt", subdirectory: "Mocks")!
+
+        return try! Data(contentsOf: url)
     }
 }
