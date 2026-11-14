@@ -59,7 +59,11 @@ public final class TLEDecoder: Sendable {
 
         let title: Line?
         let dataLines: [Line]
-        let lineNumber: Int
+
+        /// A set always has a title or at least one data line, so it starts on one of them.
+        var lineNumber: Int {
+            title?.lineNumber ?? dataLines[0].lineNumber
+        }
 
         func decode() -> Outcome {
             switch (title, firstLine, secondLine) {
@@ -172,7 +176,6 @@ public final class TLEDecoder: Sendable {
         var cursor = 0
 
         while cursor < lines.count {
-            let lineNumber = lines[cursor].lineNumber
             let title = lines[cursor].kind == .title ? lines[cursor] : nil
             if title != nil { cursor += 1 }
 
@@ -185,7 +188,7 @@ public final class TLEDecoder: Sendable {
                 cursor += 1
             }
 
-            candidateSets.append(.init(title: title, dataLines: dataLines, lineNumber: lineNumber))
+            candidateSets.append(.init(title: title, dataLines: dataLines))
         }
 
         return candidateSets
