@@ -343,5 +343,17 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.map(\.reason) == [.missingTitle])
         }
+
+        @Test("should reject data lines with no title at the end of the feed as missing a title")
+        func lastSetMissingTitle() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedEndingWithMissingTitleTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingTitle])
+        }
     }
 }
