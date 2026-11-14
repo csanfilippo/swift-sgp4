@@ -26,8 +26,8 @@ import Foundation
 
 /// A decoder that parses a Two-Line Element set (TLE) from an ASCII data buffer into a `TLE`.
 ///
-/// A TLE consists of three lines:
-/// 1. A title line (name)
+/// A TLE consists of up to three lines:
+/// 1. An optional title line (name)
 /// 2. Line 1 (69 characters)
 /// 3. Line 2 (69 characters)
 ///
@@ -84,7 +84,8 @@ public final class TLEDecoder: Sendable {
         /// The provided data buffer is not ASCII‑encoded.
         case encodingError
 
-        /// The buffer contains the wrong number of lines (expected 3: title + 2 data lines).
+        /// The buffer contains the wrong number of lines: ``TLEDecoder/decode(_:)`` expects 2 or 3,
+        /// ``TLEDecoder/decodeCollection(_:)`` a non-zero multiple of 3.
         case wrongLineCount(Int)
 
         /// One or both TLE data lines are not exactly 69 characters in length.
@@ -96,20 +97,24 @@ public final class TLEDecoder: Sendable {
     
     /// Decodes a single TLE from an ASCII buffer.
     ///
-    /// - Parameter data: The raw ASCII-encoded bytes containing exactly three non-empty lines:
-    ///   a title line followed by the two 69-character TLE lines.
+    /// - Parameter data: The raw ASCII-encoded bytes containing either three non-empty lines,
+    ///   a title line followed by the two 69-character TLE lines, or just the two TLE lines.
+    ///   Without a title line, the decoded TLE's ``TLE/title`` is empty.
     /// - Returns: A `TLE` parsed from the buffer.
     /// - Throws: `DecodingError` if the buffer cannot be decoded as ASCII, does not contain
-    ///   exactly three lines, or if the TLE lines do not meet length constraints. The
+    ///   two or three lines, or if the TLE lines do not meet length constraints. The
     ///   underlying error is a `TLEDecoder.Error` describing the specific reason.
     public func decode(_ data: Data) throws -> TLE {
         let lines = try textLines(in: data)
 
-        guard lines.count == 3 else {
+        switch lines.count {
+        case 2:
+            return try tle(title: "", firstLine: lines[0], secondLine: lines[1])
+        case 3:
+            return try tle(title: lines[0], firstLine: lines[1], secondLine: lines[2])
+        default:
             throw corruptedData(.wrongLineCount(lines.count))
         }
-
-        return try tle(title: lines[0], firstLine: lines[1], secondLine: lines[2])
     }
     
     /// Decodes one or more TLEs from an ASCII buffer.
@@ -174,7 +179,8 @@ public final class TLEDecoder: Sendable {
     ///
     /// Sets are recognized by their content, not their position: a line starting with `1 ` or
     /// `2 ` is a data line, and any other non-blank line is a title. A title that starts with
-    /// `1 ` or `2 ` is therefore read as a data line. Sets without a title line are rejected.
+    /// `1 ` or `2 ` is therefore read as a data line. A set without a title line decodes with an
+    /// empty ``TLE/title``, so feeds in Space-Track's two-line format decode too.
     ///
     /// - Parameter data: The raw ASCII-encoded bytes of the feed. Empty or blank input yields an
     ///   empty report.
@@ -196,16 +202,14 @@ public final class TLEDecoder: Sendable {
                 switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
                 case (_?, nil, nil):
                     rejections.append(candidateSet.rejected(for: .missingDataLines))
-                case (nil, _, _):
-                    rejections.append(candidateSet.rejected(for: .missingTitle))
-                case (_?, nil, _):
+                case (_, nil, _):
                     rejections.append(candidateSet.rejected(for: .missingFirstLine))
-                case (_?, _, nil):
+                case (_, _, nil):
                     rejections.append(candidateSet.rejected(for: .missingSecondLine))
-                case (_?, _?, _?) where candidateSet.isOutOfOrder:
+                case (_, _?, _?) where candidateSet.isOutOfOrder:
                     rejections.append(candidateSet.rejected(for: .dataLinesOutOfOrder))
-                case let (title?, firstLine?, secondLine?):
-                    tles.append(try TLE(title: title.value, firstLine: firstLine.value, secondLine: secondLine.value))
+                case let (title, firstLine?, secondLine?):
+                    tles.append(try TLE(title: title?.value ?? "", firstLine: firstLine.value, secondLine: secondLine.value))
                 }
             } catch TLEError.linesMustBeSixNineCharactersLong {
                 rejections.append(candidateSet.rejected(for: .invalidLineLength))

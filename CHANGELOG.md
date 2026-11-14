@@ -6,7 +6,11 @@ All notable changes to `SGPKit` are documented here. The format follows [Keep a 
 
 ### Added
 
-- `TLEDecoder.decodeValidSets(_:)` decodes a TLE feed without letting one damaged set discard the others (#16). It returns a `TLEDecodingReport` with the decoded `tles` and the `rejections`, each giving its `reason`, `title` and the `lineNumber` where the set starts. Sets are recognized by their `1 ` and `2 ` line prefixes, so a set with a missing line no longer shifts the sets after it. `decodeCollection(_:)` keeps throwing on the first bad set.
+- `TLEDecoder.decodeValidSets(_:)` decodes a TLE feed without letting one damaged set discard the others (#16). It returns a `TLEDecodingReport` with the decoded `tles` and the `rejections`, each giving its `reason`, `title` and the `lineNumber` where the set starts. Sets are recognized by their `1 ` and `2 ` line prefixes, so a set with a missing line no longer shifts the sets after it. A set without a title line decodes with an empty `title`, so feeds in Space-Track's two-line format decode, alone or mixed with titled sets. `decodeCollection(_:)` keeps throwing on the first bad set.
+
+### Fixed
+
+- `TLEDecoder.decode(_:)` decodes a TLE without a title line, such as one written by `TLEEncoder` from a `TLE` with an empty title, instead of throwing `wrongLineCount(2)`.
 
 ## 4.4.0 – 2026-11-07
 
