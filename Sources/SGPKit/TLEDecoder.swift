@@ -36,23 +36,18 @@ import Foundation
 public final class TLEDecoder: Sendable {
 
     private struct Line {
-        enum Number {
-            case first, second
-
-            var isFirst: Bool { self == .first }
-            var isSecond: Bool { self == .second }
+        enum Kind {
+            case title, firstLine, secondLine
         }
 
         let value: String
         /// The 1-based line in the input, counting blank lines.
         let lineNumber: Int
 
-        var isTitle: Bool {
-            !value.hasPrefix("1 ") && !value.hasPrefix("2 ")
-        }
-
-        var number: Number {
-            value.hasPrefix("1 ") ? .first : .second
+        var kind: Kind {
+            if value.hasPrefix("1 ") { return .firstLine }
+            if value.hasPrefix("2 ") { return .secondLine }
+            return .title
         }
     }
 
@@ -62,15 +57,15 @@ public final class TLEDecoder: Sendable {
         let lineNumber: Int
 
         var firstLine: Line? {
-            dataLines.first(where: {$0.number.isFirst })
+            dataLines.first { $0.kind == .firstLine }
         }
 
         var secondLine: Line? {
-            dataLines.first(where: { $0.number.isSecond })
+            dataLines.first { $0.kind == .secondLine }
         }
 
         var isOutOfOrder: Bool {
-            dataLines.first?.number.isSecond == true && firstLine != nil
+            dataLines.first?.kind == .secondLine && firstLine != nil
         }
 
         func rejected(for reason: TLEDecodingReport.RejectedSet.Reason) -> TLEDecodingReport.RejectedSet {
@@ -140,7 +135,7 @@ public final class TLEDecoder: Sendable {
     }
 
     private func dataLine(at cursor: Int, in lines: [Line]) -> Line? {
-        guard cursor < lines.count, !lines[cursor].isTitle else {
+        guard cursor < lines.count, lines[cursor].kind != .title else {
             return nil
         }
 
@@ -154,13 +149,13 @@ public final class TLEDecoder: Sendable {
 
         repeat {
             let lineNumber = lines[cursor].lineNumber
-            let title = lines[cursor].isTitle ? lines[cursor] : nil
+            let title = lines[cursor].kind == .title ? lines[cursor] : nil
             if title != nil { cursor += 1 }
 
             var dataLines: [Line] = []
 
             while let currentLine = dataLine(at: cursor, in: lines),
-                  !dataLines.map(\.number).contains(currentLine.number) {
+                  !dataLines.map(\.kind).contains(currentLine.kind) {
                 dataLines.append(currentLine)
 
                 cursor += 1
