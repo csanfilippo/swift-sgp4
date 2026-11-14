@@ -171,7 +171,7 @@ public final class TLEDecoder: Sendable {
 
         var cursor = 0
 
-        repeat {
+        while cursor < lines.count {
             let lineNumber = lines[cursor].lineNumber
             let title = lines[cursor].kind == .title ? lines[cursor] : nil
             if title != nil { cursor += 1 }
@@ -186,7 +186,7 @@ public final class TLEDecoder: Sendable {
             }
 
             candidateSets.append(.init(title: title, dataLines: dataLines, lineNumber: lineNumber))
-        } while cursor < lines.count
+        }
 
         return candidateSets
     }
@@ -208,10 +208,6 @@ public final class TLEDecoder: Sendable {
     ///   is not ASCII. A single non-ASCII byte anywhere in the feed fails the whole feed.
     public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
         let lines = try numberedLines(in: data)
-
-        guard !lines.isEmpty else {
-            return .init(tles: [], rejections: [])
-        }
 
         var rejections: [TLEDecodingReport.RejectedSet] = []
         var tles: [TLE] = []
