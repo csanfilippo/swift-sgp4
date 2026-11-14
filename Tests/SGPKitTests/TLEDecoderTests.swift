@@ -416,5 +416,17 @@ extension TLEDecoderTests {
 
             #expect(report.rejections.map(\.lineNumber) == [expectedLineNumber])
         }
+
+        @Test("should reject a set with both a missing line and a wrong-length line for the missing line")
+        func missingLineOutranksInvalidLineLength() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithShortFirstLineAndMissingSecondLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingSecondLine])
+        }
     }
 }
