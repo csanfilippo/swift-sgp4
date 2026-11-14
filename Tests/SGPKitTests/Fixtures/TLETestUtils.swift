@@ -223,4 +223,14 @@ final class TLETestUtils {
 
         return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
     }
+
+    static func loadFeedWithBlankLinesAndMissingSecondLineTLEData() -> Data {
+        let url = Bundle.module.url(
+            forResource: "feed_with_blank_lines_and_missing_second_line_tle",
+            withExtension: "txt",
+            subdirectory: "Mocks"
+        )!
+
+        return try! Data(contentsOf: url)
+    }
 }

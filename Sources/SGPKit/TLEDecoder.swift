@@ -39,6 +39,7 @@ public struct TLEDecodingReport: Sendable {
 
         public let reason: Reason
         public let title: String?
+        public let lineNumber: Int
     }
 
     public let tles: [TLE]
@@ -65,7 +66,12 @@ public final class TLEDecoder: Sendable {
         }
 
         let value: String
-        let index: Int
+        /// The 1-based line in the input, counting blank lines.
+        let lineNumber: Int
+
+        var isTitle: Bool {
+            !value.hasPrefix("1 ") && !value.hasPrefix("2 ")
+        }
 
         var number: Number {
             value.hasPrefix("1 ") ? .first : .second
@@ -73,8 +79,9 @@ public final class TLEDecoder: Sendable {
     }
 
     private struct CandidateSet {
-        let title: String?
+        let title: Line?
         let dataLines: [Line]
+        let lineNumber: Int
 
         var firstLine: Line? {
             dataLines.first(where: {$0.number.isFirst })
@@ -86,6 +93,10 @@ public final class TLEDecoder: Sendable {
 
         var isOutOfOrder: Bool {
             dataLines.first?.number.isSecond == true && firstLine != nil
+        }
+
+        func rejected(for reason: TLEDecodingReport.RejectedSet.Reason) -> TLEDecodingReport.RejectedSet {
+            .init(reason: reason, title: title?.value, lineNumber: lineNumber)
         }
     }
 
@@ -145,20 +156,21 @@ public final class TLEDecoder: Sendable {
         }
     }
 
-    private func dataLine(at cursor: Int, in lines: [String]) -> Line? {
+    private func dataLine(at cursor: Int, in lines: [Line]) -> Line? {
         guard cursor < lines.count, !lines[cursor].isTitle else {
             return nil
         }
 
-        return .init(value: lines[cursor], index: cursor)
+        return lines[cursor]
     }
 
-    private func candidateSets(in lines: [String]) -> [CandidateSet] {
+    private func candidateSets(in lines: [Line]) -> [CandidateSet] {
         var candidateSets: [CandidateSet] = []
 
         var cursor = 0
 
         repeat {
+            let lineNumber = lines[cursor].lineNumber
             let title = lines[cursor].isTitle ? lines[cursor] : nil
             if title != nil { cursor += 1 }
 
@@ -171,14 +183,14 @@ public final class TLEDecoder: Sendable {
                 cursor += 1
             }
 
-            candidateSets.append(.init(title: title, dataLines: dataLines))
+            candidateSets.append(.init(title: title, dataLines: dataLines, lineNumber: lineNumber))
         } while cursor < lines.count
 
         return candidateSets
     }
 
     public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
-        let lines = try textLines(in: data)
+        let lines = try numberedLines(in: data)
 
         guard !lines.isEmpty else {
             return .init(tles: [], rejections: [])
@@ -190,25 +202,39 @@ public final class TLEDecoder: Sendable {
         for candidateSet in candidateSets(in: lines) {
             do {
                 switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
-                case (let title?, nil, nil):
-                    rejections.append(.init(reason: .missingDataLines, title: title))
+                case (_?, nil, nil):
+                    rejections.append(candidateSet.rejected(for: .missingDataLines))
                 case (nil, _, _):
-                    rejections.append(.init(reason: .missingTitle, title: nil))
-                case (let title?, nil, _):
-                    rejections.append(.init(reason: .missingFirstLine, title: title))
-                case (let title?, _, nil):
-                    rejections.append(.init(reason: .missingSecondLine, title: title))
-                case (let title?, _?, _?) where candidateSet.isOutOfOrder:
-                    rejections.append(.init(reason: .dataLinesOutOfOrder, title: title))
+                    rejections.append(candidateSet.rejected(for: .missingTitle))
+                case (_?, nil, _):
+                    rejections.append(candidateSet.rejected(for: .missingFirstLine))
+                case (_?, _, nil):
+                    rejections.append(candidateSet.rejected(for: .missingSecondLine))
+                case (_?, _?, _?) where candidateSet.isOutOfOrder:
+                    rejections.append(candidateSet.rejected(for: .dataLinesOutOfOrder))
                 case let (title?, firstLine?, secondLine?):
-                    tles.append(try TLE(title: title, firstLine: firstLine.value, secondLine: secondLine.value))
+                    tles.append(try TLE(title: title.value, firstLine: firstLine.value, secondLine: secondLine.value))
                 }
             } catch TLEError.linesMustBeSixNineCharactersLong {
-                rejections.append(.init(reason: .invalidLineLength, title: candidateSet.title))
+                rejections.append(candidateSet.rejected(for: .invalidLineLength))
             }
         }
 
         return .init(tles: tles, rejections: rejections)
+    }
+
+    private func numberedLines(in data: Data) throws -> [Line] {
+        guard let text = String(data: data, encoding: .ascii) else {
+            throw corruptedData(.encodingError)
+        }
+
+        return text
+            .split(omittingEmptySubsequences: false, whereSeparator: { $0.isNewline })
+            .enumerated()
+            .map { offset, line in
+                Line(value: line.trimmingCharacters(in: .whitespaces), lineNumber: offset + 1)
+            }
+            .filter { !$0.value.isEmpty }
     }
 
     private func textLines(in data: Data) throws -> [String] {
@@ -232,11 +258,5 @@ public final class TLEDecoder: Sendable {
 
     private func corruptedData(_ reason: Error) -> DecodingError {
         .dataCorrupted(.init(codingPath: [], debugDescription: "The provided data is not a valid TLE.", underlyingError: reason))
-    }
-}
-
-private extension String {
-    var isTitle: Bool {
-        !hasPrefix("1 ") && !hasPrefix("2 ")
     }
 }

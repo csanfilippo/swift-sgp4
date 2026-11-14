@@ -398,5 +398,23 @@ extension TLEDecoderTests {
 
             #expect(report.rejections.map(\.title) == [expectedTitle])
         }
+
+        @Test(
+            "should report the physical line a rejected set starts on, counting blank lines",
+            arguments: zip(
+                [
+                    TLETestUtils.loadFeedWithBlankLinesAndMissingSecondLineTLEData(),
+                    TLETestUtils.loadFeedWithMissingTitleTLEData().0
+                ],
+                [6, 4]
+            )
+        )
+        func rejectedSetLineNumber(data: Data, expectedLineNumber: Int) throws {
+            let decoder = TLEDecoder()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.rejections.map(\.lineNumber) == [expectedLineNumber])
+        }
     }
 }
