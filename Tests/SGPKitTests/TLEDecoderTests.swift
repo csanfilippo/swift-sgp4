@@ -54,7 +54,40 @@ struct TLEDecoderTests {
         
         #expect(result == expected)
     }
-    
+
+    @Test("should decode a TLE without a title line with an empty title")
+    func titlelessDecoding() throws {
+        let decoder = TLEDecoder()
+
+        let (data, expected) = TLETestUtils.loadValidTitlelessTLEData()
+
+        let result = try decoder.decode(data)
+
+        #expect(result == expected)
+    }
+
+    @Test("should raise an exception when decoding two lines that start with a title line")
+    func twoLinesStartingWithTitle() throws {
+        let decoder = TLEDecoder()
+
+        let data = TLETestUtils.loadTwoLinesStartingWithTitleTLEData()
+
+        let thrownError = #expect(throws: DecodingError.self) {
+            try decoder.decode(data)
+        }
+
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+    }
+
+    @Test("should decode a titleless TLE written by TLEEncoder back to an equal TLE")
+    func titlelessRoundTrip() throws {
+        let tle = TLETestUtils.titlelessTLE()
+
+        let data = try TLEEncoder().encode(tle)
+
+        #expect(try TLEDecoder().decode(data) == tle)
+    }
+
     @Test("should decode ascii-encoded multiple LTE")
     func asciiDecodingArray() throws {
         let decoder = TLEDecoder()
@@ -258,6 +291,18 @@ extension TLEDecoderTests {
             #expect(report.rejections.isEmpty)
         }
 
+        @Test("should decode every set of a feed without title lines, each with an empty title")
+        func feedWithoutTitles() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithoutTitlesTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.isEmpty)
+        }
+
         @Test(
             "should decode an empty or blank feed to an empty report",
             arguments: [TLETestUtils.getEmptyTLEData(), TLETestUtils.getBlankLinesTLEData()]
@@ -332,28 +377,64 @@ extension TLEDecoderTests {
             #expect(report.rejections.map(\.reason) == [.missingFirstLine])
         }
 
-        @Test("should reject data lines with no title before them as missing a title")
-        func setMissingTitle() throws {
+        @Test("should decode a set without a title line between titled sets with an empty title")
+        func titlelessSetBetweenTitledSets() throws {
             let decoder = TLEDecoder()
 
-            let (data, expected) = TLETestUtils.loadFeedWithMissingTitleTLEData()
+            let (data, expected) = TLETestUtils.loadFeedWithTitlelessSetTLEData()
 
             let report = try decoder.decodeValidSets(data)
 
             #expect(report.tles == expected)
-            #expect(report.rejections.map(\.reason) == [.missingTitle])
+            #expect(report.rejections.isEmpty)
         }
 
-        @Test("should reject data lines with no title at the end of the feed as missing a title")
-        func lastSetMissingTitle() throws {
+        @Test("should decode a set without a title line at the end of the feed with an empty title")
+        func titlelessLastSet() throws {
             let decoder = TLEDecoder()
 
-            let (data, expected) = TLETestUtils.loadFeedEndingWithMissingTitleTLEData()
+            let (data, expected) = TLETestUtils.loadFeedEndingWithTitlelessSetTLEData()
 
             let report = try decoder.decodeValidSets(data)
 
             #expect(report.tles == expected)
-            #expect(report.rejections.map(\.reason) == [.missingTitle])
+            #expect(report.rejections.isEmpty)
+        }
+
+        @Test("should reject a line 1 without a title or line 2 as missing line 2 and decode the set after it")
+        func titlelessFirstLineWithoutSecondLine() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithTitlelessFirstLineWithoutSecondLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingSecondLine])
+        }
+
+        @Test("should reject a set without a title whose line 2 comes before line 1 as out of order")
+        func titlelessSetOutOfOrder() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithTitlelessSetOutOfOrderTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.dataLinesOutOfOrder])
+        }
+
+        @Test("should keep a Space-Track 3LE title line, \"0 \" prefix included, as the title")
+        func threeLETitles() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWith3LETitlesTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.isEmpty)
         }
 
         @Test("should reject a set whose line 2 comes before line 1 as out of order")
@@ -386,7 +467,7 @@ extension TLEDecoderTests {
                 [
                     TLETestUtils.loadFeedWithMissingSecondLineTLEData().0,
                     TLETestUtils.loadFeedWithShortLineTLEData().0,
-                    TLETestUtils.loadFeedWithMissingTitleTLEData().0
+                    TLETestUtils.loadFeedWithTitlelessSetWithShortLineTLEData().0
                 ],
                 ["CSS (TIANHE)", "CSS (TIANHE)", nil] as [String?]
             )
@@ -404,7 +485,7 @@ extension TLEDecoderTests {
             arguments: zip(
                 [
                     TLETestUtils.loadFeedWithBlankLinesAndMissingSecondLineTLEData(),
-                    TLETestUtils.loadFeedWithMissingTitleTLEData().0
+                    TLETestUtils.loadFeedWithTitlelessSetWithShortLineTLEData().0
                 ],
                 [6, 4]
             )

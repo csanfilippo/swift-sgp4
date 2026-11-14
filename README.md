@@ -30,6 +30,23 @@ print(data.altitude)   // kilometers
 print(data.speed)      // km/h, inertial frame
 ```
 
+### Decoding a TLE feed
+
+`TLEDecoder.decodeValidSets(_:)` decodes every valid set in a feed, such as a CelesTrak or Space-Track download, and reports the damaged ones instead of failing the whole feed. Sets with or without a title line are both accepted.
+
+```swift
+let feed = try Data(contentsOf: feedURL)
+let report = try TLEDecoder().decodeValidSets(feed)
+
+for tle in report.tles {
+    print(tle.title)
+}
+
+for rejection in report.rejections {
+    print("Skipped \(rejection.title ?? "untitled set") at line \(rejection.lineNumber): \(rejection.reason)")
+}
+```
+
 ### Swift Package Manager
 
 If you want to use SGPKit in any other project that uses [SwiftPM](https://swift.org/package-manager/), add the package as a dependency in `Package.swift`:

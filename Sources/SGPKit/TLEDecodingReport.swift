@@ -34,12 +34,10 @@ public struct TLEDecodingReport: Sendable {
         public enum Reason: Sendable {
             /// A data line is not exactly 69 characters long.
             case invalidLineLength
-            /// The set has a title and line 2, but no line 1.
+            /// The set has line 2, but no line 1.
             case missingFirstLine
-            /// The set has a title and line 1, but no line 2.
+            /// The set has line 1, but no line 2.
             case missingSecondLine
-            /// The set's data lines have no title line before them.
-            case missingTitle
             /// Line 2 appears before line 1.
             case dataLinesOutOfOrder
             /// A title line is followed by no data lines.
