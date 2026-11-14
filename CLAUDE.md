@@ -72,7 +72,12 @@ Three layered targets, each a boundary you should not blur:
 - **`TLEDecoder` / `TLEEncoder`** — the supported way to convert between raw ASCII TLE text and
   `TLE`. Neither is a `Codable` adapter: `TLEEncoder` joins the three lines of a `TLE` with
   newlines, and `TLEDecoder` splits the text into lines and builds each `TLE` through its
-  designated initializer, mapping `TLEError` to `TLEDecoder.Error`.
+  designated initializer, mapping `TLEError` to `TLEDecoder.Error`. `decode` and
+  `decodeCollection` read lines by position and throw on the first problem (`decode` takes 2 or 3
+  lines; without a title line the `TLE`'s title is empty). `decodeValidSets` is the tolerant path:
+  it recognizes sets by content (a line starting `1 ` or `2 ` is a data line, any other non-blank
+  line a title, titles optional) and returns a `TLEDecodingReport` of decoded `tles` plus
+  `rejections`, each with a `reason`, `title` and the 1-based `lineNumber`, counting blank lines.
 - **`TLEParser`** — deprecated; kept for source compatibility. New code should use `TLEDecoder`.
 
 ### Error handling pattern
