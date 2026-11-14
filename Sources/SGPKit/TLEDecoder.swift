@@ -53,10 +53,15 @@ public struct TLEDecodingReport: Sendable {
 /// and surfaces failures as `DecodingError` values whose underlying error is `TLEDecoder.Error`.
 public final class TLEDecoder: Sendable {
 
+    private struct Line {
+        let value: String
+        let index: Int
+    }
+
     private struct CandidateSet {
         let title: String?
-        let firstLine: String?
-        let secondLine: String?
+        let firstLine: Line?
+        let secondLine: Line?
     }
 
     /// Errors that can occur while validating raw TLE input.
@@ -115,14 +120,14 @@ public final class TLEDecoder: Sendable {
         }
     }
 
-    private func line(at cursor: Int, in lines: [String], withPrefix prefix: String) -> String? {
+    private func line(at cursor: Int, in lines: [String], withPrefix prefix: String) -> Line? {
         guard cursor < lines.count else {
             return nil
         }
 
         let line = lines[cursor]
 
-        return line.hasPrefix(prefix) ? line : nil
+        return line.hasPrefix(prefix) ? .init(value: line, index: cursor) : nil
     }
 
     private func candidateSets(in lines: [String]) -> [CandidateSet] {
@@ -164,7 +169,7 @@ public final class TLEDecoder: Sendable {
                 case (_, _, nil):
                     rejections.append(.init(reason: .missingSecondLine))
                 case let (title?, firstLine?, secondLine?):
-                    tles.append(try TLE(title: title, firstLine: firstLine, secondLine: secondLine))
+                    tles.append(try TLE(title: title, firstLine: firstLine.value, secondLine: secondLine.value))
                 }
             } catch TLEError.linesMustBeSixNineCharactersLong {
                 rejections.append(.init(reason: .invalidLineLength))
