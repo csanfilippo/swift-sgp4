@@ -355,5 +355,17 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.map(\.reason) == [.missingTitle])
         }
+
+        @Test("should reject a set whose line 2 comes before line 1 as out of order")
+        func setWithDataLinesOutOfOrder() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithDataLinesOutOfOrderTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.dataLinesOutOfOrder])
+        }
     }
 }
