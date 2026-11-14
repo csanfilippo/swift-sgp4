@@ -239,14 +239,7 @@ public final class TLEDecoder: Sendable {
     }
 
     private func textLines(in data: Data) throws -> [String] {
-        guard let text = String(data: data, encoding: .ascii) else {
-            throw corruptedData(.encodingError)
-        }
-
-        return text
-            .split(whereSeparator: { $0.isNewline })
-            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+        try numberedLines(in: data).map(\.value)
     }
 
     private func tle(title: String, firstLine: String, secondLine: String) throws -> TLE {
