@@ -245,4 +245,28 @@ final class TLETestUtils {
 
         return (try! Data(contentsOf: url), [threeValidTLEs[0], threeValidTLEs[2]])
     }
+
+    static func loadIssue16FeedTLEData() -> (Data, [TLE]) {
+        let url = Bundle.module.url(
+            forResource: "issue_16_feed_tle",
+            withExtension: "txt",
+            subdirectory: "Mocks"
+        )!
+
+        return (
+            try! Data(contentsOf: url),
+            [
+                try! TLE(
+                    title: "ISS (ZARYA)",
+                    firstLine: "1 25544U 98067A   98324.28472222 -.00003657  11563-4  00000+0 0    10",
+                    secondLine: "2 25544  51.5908 168.3788 0125362  86.4185 359.7454 16.05064833    05"
+                ),
+                try! TLE(
+                    title: "DELTA 2 R/B(1)",
+                    firstLine: "1 20453U 90008B   26263.56914166  .00350177  49935-4  75989-3 0  9996",
+                    secondLine: "2 20453  35.5934 307.3932 0022512 310.3690  49.5094 15.96788691956793"
+                )
+            ]
+        )
+    }
 }

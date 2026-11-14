@@ -428,5 +428,20 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.map(\.reason) == [.missingSecondLine])
         }
+
+        @Test("should decode the good sets of the issue #16 feed and report the set missing line 2")
+        func issue16Feed() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadIssue16FeedTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            try #require(report.rejections.count == 1)
+            #expect(report.rejections[0].reason == .missingSecondLine)
+            #expect(report.rejections[0].title == "VANGUARD DEB")
+            #expect(report.rejections[0].lineNumber == 4)
+        }
     }
 }
