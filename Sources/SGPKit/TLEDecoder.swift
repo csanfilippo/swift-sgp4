@@ -35,72 +35,6 @@ import Foundation
 /// and surfaces failures as `DecodingError` values whose underlying error is `TLEDecoder.Error`.
 public final class TLEDecoder: Sendable {
 
-    private struct Line {
-        enum Kind {
-            case title, firstLine, secondLine
-        }
-
-        let value: String
-        /// The 1-based line in the input, counting blank lines.
-        let lineNumber: Int
-
-        var kind: Kind {
-            if value.hasPrefix("1 ") { return .firstLine }
-            if value.hasPrefix("2 ") { return .secondLine }
-            return .title
-        }
-    }
-
-    private struct CandidateSet {
-        enum Outcome {
-            case decoded(TLE)
-            case rejected(TLEDecodingReport.RejectedSet)
-        }
-
-        let title: Line?
-        let dataLines: [Line]
-
-        /// A set always has a title or at least one data line, so it starts on one of them.
-        var lineNumber: Int {
-            title?.lineNumber ?? dataLines[0].lineNumber
-        }
-
-        func decode() -> Outcome {
-            switch (title, firstLine, secondLine) {
-            case (_?, nil, nil):
-                return rejected(for: .missingDataLines)
-            case (_, nil, _):
-                return rejected(for: .missingFirstLine)
-            case (_, _, nil):
-                return rejected(for: .missingSecondLine)
-            case (_, _?, _?) where isOutOfOrder:
-                return rejected(for: .dataLinesOutOfOrder)
-            case let (title, firstLine?, secondLine?):
-                do {
-                    return .decoded(try TLE(title: title?.value ?? "", firstLine: firstLine.value, secondLine: secondLine.value))
-                } catch {
-                    return rejected(for: .invalidLineLength)
-                }
-            }
-        }
-
-        private var firstLine: Line? {
-            dataLines.first { $0.kind == .firstLine }
-        }
-
-        private var secondLine: Line? {
-            dataLines.first { $0.kind == .secondLine }
-        }
-
-        private var isOutOfOrder: Bool {
-            dataLines.first?.kind == .secondLine && firstLine != nil
-        }
-
-        private func rejected(for reason: TLEDecodingReport.RejectedSet.Reason) -> Outcome {
-            .rejected(.init(reason: reason, title: title?.value, lineNumber: lineNumber))
-        }
-    }
-
     /// Errors that can occur while validating raw TLE input.
     public enum Error: Swift.Error, Equatable {
 
@@ -162,38 +96,6 @@ public final class TLEDecoder: Sendable {
         }
     }
 
-    private func dataLine(at cursor: Int, in lines: [Line]) -> Line? {
-        guard cursor < lines.count, lines[cursor].kind != .title else {
-            return nil
-        }
-
-        return lines[cursor]
-    }
-
-    private func candidateSets(in lines: [Line]) -> [CandidateSet] {
-        var candidateSets: [CandidateSet] = []
-
-        var cursor = 0
-
-        while cursor < lines.count {
-            let title = lines[cursor].kind == .title ? lines[cursor] : nil
-            if title != nil { cursor += 1 }
-
-            var dataLines: [Line] = []
-
-            while let currentLine = dataLine(at: cursor, in: lines),
-                  !dataLines.map(\.kind).contains(currentLine.kind) {
-                dataLines.append(currentLine)
-
-                cursor += 1
-            }
-
-            candidateSets.append(.init(title: title, dataLines: dataLines))
-        }
-
-        return candidateSets
-    }
-
     /// Decodes every valid TLE set in a feed and reports the sets that could not be decoded.
     ///
     /// Unlike ``decodeCollection(_:)``, a damaged set doesn't fail the whole feed: it is skipped
@@ -215,7 +117,7 @@ public final class TLEDecoder: Sendable {
         var rejections: [TLEDecodingReport.RejectedSet] = []
         var tles: [TLE] = []
 
-        for candidateSet in candidateSets(in: lines) {
+        for candidateSet in TLEFeed(lines: lines).candidateSets {
             switch candidateSet.decode() {
             case .decoded(let tle):
                 tles.append(tle)
@@ -227,7 +129,7 @@ public final class TLEDecoder: Sendable {
         return .init(tles: tles, rejections: rejections)
     }
 
-    private func numberedLines(in data: Data) throws -> [Line] {
+    private func numberedLines(in data: Data) throws -> [TLEFeed.Line] {
         guard let text = String(data: data, encoding: .ascii) else {
             throw corruptedData(.encodingError)
         }
@@ -236,7 +138,7 @@ public final class TLEDecoder: Sendable {
             .split(omittingEmptySubsequences: false, whereSeparator: { $0.isNewline })
             .enumerated()
             .map { offset, line in
-                Line(value: line.trimmingCharacters(in: .whitespaces), lineNumber: offset + 1)
+                TLEFeed.Line(value: line.trimmingCharacters(in: .whitespaces), lineNumber: offset + 1)
             }
             .filter { !$0.value.isEmpty }
     }

@@ -78,6 +78,8 @@ Three layered targets, each a boundary you should not blur:
   it recognizes sets by content (a line starting `1 ` or `2 ` is a data line, any other non-blank
   line a title, titles optional) and returns a `TLEDecodingReport` of decoded `tles` plus
   `rejections`, each with a `reason`, `title` and the 1-based `lineNumber`, counting blank lines.
+  The recognition lives in the internal `TLEFeed`: it splits lines into `CandidateSet`s, and each
+  set decides its own outcome (`decode()` → a `TLE` or a rejection).
 - **`TLEParser`** — deprecated; kept for source compatibility. New code should use `TLEDecoder`.
 
 ### Error handling pattern
