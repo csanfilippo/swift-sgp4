@@ -52,24 +52,48 @@ public final class TLEDecoder: Sendable {
     }
 
     private struct CandidateSet {
+        enum Outcome {
+            case decoded(TLE)
+            case rejected(TLEDecodingReport.RejectedSet)
+        }
+
         let title: Line?
         let dataLines: [Line]
         let lineNumber: Int
 
-        var firstLine: Line? {
+        func decode() -> Outcome {
+            switch (title, firstLine, secondLine) {
+            case (_?, nil, nil):
+                return rejected(for: .missingDataLines)
+            case (_, nil, _):
+                return rejected(for: .missingFirstLine)
+            case (_, _, nil):
+                return rejected(for: .missingSecondLine)
+            case (_, _?, _?) where isOutOfOrder:
+                return rejected(for: .dataLinesOutOfOrder)
+            case let (title, firstLine?, secondLine?):
+                do {
+                    return .decoded(try TLE(title: title?.value ?? "", firstLine: firstLine.value, secondLine: secondLine.value))
+                } catch {
+                    return rejected(for: .invalidLineLength)
+                }
+            }
+        }
+
+        private var firstLine: Line? {
             dataLines.first { $0.kind == .firstLine }
         }
 
-        var secondLine: Line? {
+        private var secondLine: Line? {
             dataLines.first { $0.kind == .secondLine }
         }
 
-        var isOutOfOrder: Bool {
+        private var isOutOfOrder: Bool {
             dataLines.first?.kind == .secondLine && firstLine != nil
         }
 
-        func rejected(for reason: TLEDecodingReport.RejectedSet.Reason) -> TLEDecodingReport.RejectedSet {
-            .init(reason: reason, title: title?.value, lineNumber: lineNumber)
+        private func rejected(for reason: TLEDecodingReport.RejectedSet.Reason) -> Outcome {
+            .rejected(.init(reason: reason, title: title?.value, lineNumber: lineNumber))
         }
     }
 
@@ -193,21 +217,11 @@ public final class TLEDecoder: Sendable {
         var tles: [TLE] = []
 
         for candidateSet in candidateSets(in: lines) {
-            do {
-                switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
-                case (_?, nil, nil):
-                    rejections.append(candidateSet.rejected(for: .missingDataLines))
-                case (_, nil, _):
-                    rejections.append(candidateSet.rejected(for: .missingFirstLine))
-                case (_, _, nil):
-                    rejections.append(candidateSet.rejected(for: .missingSecondLine))
-                case (_, _?, _?) where candidateSet.isOutOfOrder:
-                    rejections.append(candidateSet.rejected(for: .dataLinesOutOfOrder))
-                case let (title, firstLine?, secondLine?):
-                    tles.append(try TLE(title: title?.value ?? "", firstLine: firstLine.value, secondLine: secondLine.value))
-                }
-            } catch TLEError.linesMustBeSixNineCharactersLong {
-                rejections.append(candidateSet.rejected(for: .invalidLineLength))
+            switch candidateSet.decode() {
+            case .decoded(let tle):
+                tles.append(tle)
+            case .rejected(let rejection):
+                rejections.append(rejection)
             }
         }
 
