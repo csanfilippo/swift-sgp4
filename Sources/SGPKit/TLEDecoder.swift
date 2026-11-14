@@ -34,7 +34,50 @@ import Foundation
 /// This decoder validates the basic TLE constraints (ASCII encoding, line count, and line lengths)
 /// and surfaces failures as `DecodingError` values whose underlying error is `TLEDecoder.Error`.
 public final class TLEDecoder: Sendable {
-    
+
+    private struct Line {
+        enum Number {
+            case first, second
+
+            var isFirst: Bool { self == .first }
+            var isSecond: Bool { self == .second }
+        }
+
+        let value: String
+        /// The 1-based line in the input, counting blank lines.
+        let lineNumber: Int
+
+        var isTitle: Bool {
+            !value.hasPrefix("1 ") && !value.hasPrefix("2 ")
+        }
+
+        var number: Number {
+            value.hasPrefix("1 ") ? .first : .second
+        }
+    }
+
+    private struct CandidateSet {
+        let title: Line?
+        let dataLines: [Line]
+        let lineNumber: Int
+
+        var firstLine: Line? {
+            dataLines.first(where: {$0.number.isFirst })
+        }
+
+        var secondLine: Line? {
+            dataLines.first(where: { $0.number.isSecond })
+        }
+
+        var isOutOfOrder: Bool {
+            dataLines.first?.number.isSecond == true && firstLine != nil
+        }
+
+        func rejected(for reason: TLEDecodingReport.RejectedSet.Reason) -> TLEDecodingReport.RejectedSet {
+            .init(reason: reason, title: title?.value, lineNumber: lineNumber)
+        }
+    }
+
     /// Errors that can occur while validating raw TLE input.
     public enum Error: Swift.Error, Equatable {
 
@@ -89,6 +132,101 @@ public final class TLEDecoder: Sendable {
         return try stride(from: 0, to: lines.count, by: 3).map { start in
             try tle(title: lines[start], firstLine: lines[start + 1], secondLine: lines[start + 2])
         }
+    }
+
+    private func dataLine(at cursor: Int, in lines: [Line]) -> Line? {
+        guard cursor < lines.count, !lines[cursor].isTitle else {
+            return nil
+        }
+
+        return lines[cursor]
+    }
+
+    private func candidateSets(in lines: [Line]) -> [CandidateSet] {
+        var candidateSets: [CandidateSet] = []
+
+        var cursor = 0
+
+        repeat {
+            let lineNumber = lines[cursor].lineNumber
+            let title = lines[cursor].isTitle ? lines[cursor] : nil
+            if title != nil { cursor += 1 }
+
+            var dataLines: [Line] = []
+
+            while let currentLine = dataLine(at: cursor, in: lines),
+                  !dataLines.map(\.number).contains(currentLine.number) {
+                dataLines.append(currentLine)
+
+                cursor += 1
+            }
+
+            candidateSets.append(.init(title: title, dataLines: dataLines, lineNumber: lineNumber))
+        } while cursor < lines.count
+
+        return candidateSets
+    }
+
+    /// Decodes every valid TLE set in a feed and reports the sets that could not be decoded.
+    ///
+    /// Unlike ``decodeCollection(_:)``, a damaged set doesn't fail the whole feed: it is skipped
+    /// and reported in ``TLEDecodingReport/rejections``, and the sets around it still decode.
+    ///
+    /// Sets are recognized by their content, not their position: a line starting with `1 ` or
+    /// `2 ` is a data line, and any other non-blank line is a title. A title that starts with
+    /// `1 ` or `2 ` is therefore read as a data line. Sets without a title line are rejected.
+    ///
+    /// - Parameter data: The raw ASCII-encoded bytes of the feed. Empty or blank input yields an
+    ///   empty report.
+    /// - Returns: The decoded TLEs and the rejected sets, both in feed order.
+    /// - Throws: `DecodingError` whose underlying error is ``Error/encodingError`` if the data
+    ///   is not ASCII. A single non-ASCII byte anywhere in the feed fails the whole feed.
+    public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
+        let lines = try numberedLines(in: data)
+
+        guard !lines.isEmpty else {
+            return .init(tles: [], rejections: [])
+        }
+
+        var rejections: [TLEDecodingReport.RejectedSet] = []
+        var tles: [TLE] = []
+
+        for candidateSet in candidateSets(in: lines) {
+            do {
+                switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
+                case (_?, nil, nil):
+                    rejections.append(candidateSet.rejected(for: .missingDataLines))
+                case (nil, _, _):
+                    rejections.append(candidateSet.rejected(for: .missingTitle))
+                case (_?, nil, _):
+                    rejections.append(candidateSet.rejected(for: .missingFirstLine))
+                case (_?, _, nil):
+                    rejections.append(candidateSet.rejected(for: .missingSecondLine))
+                case (_?, _?, _?) where candidateSet.isOutOfOrder:
+                    rejections.append(candidateSet.rejected(for: .dataLinesOutOfOrder))
+                case let (title?, firstLine?, secondLine?):
+                    tles.append(try TLE(title: title.value, firstLine: firstLine.value, secondLine: secondLine.value))
+                }
+            } catch TLEError.linesMustBeSixNineCharactersLong {
+                rejections.append(candidateSet.rejected(for: .invalidLineLength))
+            }
+        }
+
+        return .init(tles: tles, rejections: rejections)
+    }
+
+    private func numberedLines(in data: Data) throws -> [Line] {
+        guard let text = String(data: data, encoding: .ascii) else {
+            throw corruptedData(.encodingError)
+        }
+
+        return text
+            .split(omittingEmptySubsequences: false, whereSeparator: { $0.isNewline })
+            .enumerated()
+            .map { offset, line in
+                Line(value: line.trimmingCharacters(in: .whitespaces), lineNumber: offset + 1)
+            }
+            .filter { !$0.value.isEmpty }
     }
 
     private func textLines(in data: Data) throws -> [String] {

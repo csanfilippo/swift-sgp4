@@ -87,7 +87,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
     }
     
     @Test("should raise an exception when decoding a TLE with lines shorter than 69 characters")
@@ -100,7 +100,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
     }
     
     @Test("should raise an exception when decoding a TLE with lines longer than 69 characters")
@@ -124,7 +124,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(1))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(1))
     }
     
     @Test("should raise an exception when decoding an empty TLE")
@@ -137,7 +137,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
         
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
     @Test("should raise an exception when decoding an empty array of TLEs")
@@ -150,7 +150,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
     @Test("should report the line count when decoding an array of TLEs with a wrong number of lines")
@@ -163,7 +163,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(8))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(8))
     }
 
     @Test("should raise an exception when decoding an array of TLEs from utf8-encoded data")
@@ -176,7 +176,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
     }
 
     @Test("should raise an exception when decoding an array of TLEs with lines shorter than 69 characters")
@@ -189,7 +189,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
     }
 
     @Test("should raise an exception when decoding an array of TLEs with lines longer than 69 characters")
@@ -202,7 +202,7 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .invalidLineLength)
     }
 
     @Test("should raise an exception when decoding more than one TLE as a single TLE")
@@ -215,7 +215,7 @@ struct TLEDecoderTests {
             try decoder.decode(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(9))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(9))
     }
 
     @Test("should raise an exception when decoding an array of TLEs made only of blank lines")
@@ -228,10 +228,10 @@ struct TLEDecoderTests {
             try decoder.decodeCollection(data)
         }
 
-        expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
+        Self.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .wrongLineCount(0))
     }
 
-    private func expectUnderlyingErrorToBe(decodingError: DecodingError, expectedError: TLEDecoder.Error) {
+    private static func expectUnderlyingErrorToBe(decodingError: DecodingError, expectedError: TLEDecoder.Error) {
         if case let DecodingError.dataCorrupted(context) = decodingError, let error = context.underlyingError as? TLEDecoder.Error {
             #expect(error == expectedError)
         } else {
@@ -239,4 +239,209 @@ struct TLEDecoderTests {
         }
     }
     
+}
+
+extension TLEDecoderTests {
+
+    @Suite("decodeValidSets")
+    struct DecodeValidSets {
+
+        @Test("should decode every set of a valid feed, in order, with no rejections")
+        func validFeed() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadThreeValidTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.isEmpty)
+        }
+
+        @Test(
+            "should decode an empty or blank feed to an empty report",
+            arguments: [TLETestUtils.getEmptyTLEData(), TLETestUtils.getBlankLinesTLEData()]
+        )
+        func emptyFeed(data: Data) throws {
+            let decoder = TLEDecoder()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles.isEmpty)
+            #expect(report.rejections.isEmpty)
+        }
+
+        @Test("should throw a decoding error when decoding a non-ASCII feed")
+        func nonASCIIFeed() throws {
+            let decoder = TLEDecoder()
+
+            let data = TLETestUtils.loadUTF8InvalidTLEData()
+
+            let thrownError = #expect(throws: DecodingError.self) {
+                try decoder.decodeValidSets(data)
+            }
+
+            TLEDecoderTests.expectUnderlyingErrorToBe(decodingError: try #require(thrownError), expectedError: .encodingError)
+        }
+
+        @Test("should reject a set with a data line that is not 69 characters and decode the sets around it")
+        func setWithInvalidLineLength() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithShortLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.invalidLineLength])
+        }
+
+        @Test("should reject a set missing line 2 and decode the set after it")
+        func setMissingSecondLine() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithMissingSecondLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingSecondLine])
+        }
+
+        @Test("should reject a set missing line 2 at the end of the feed")
+        func lastSetMissingSecondLine() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedEndingWithMissingSecondLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingSecondLine])
+        }
+
+        @Test("should reject a set missing line 1 and decode the set after it")
+        func setMissingFirstLine() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithMissingFirstLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingFirstLine])
+        }
+
+        @Test("should reject data lines with no title before them as missing a title")
+        func setMissingTitle() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithMissingTitleTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingTitle])
+        }
+
+        @Test("should reject data lines with no title at the end of the feed as missing a title")
+        func lastSetMissingTitle() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedEndingWithMissingTitleTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingTitle])
+        }
+
+        @Test("should reject a set whose line 2 comes before line 1 as out of order")
+        func setWithDataLinesOutOfOrder() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithDataLinesOutOfOrderTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.dataLinesOutOfOrder])
+        }
+
+        @Test("should reject a title followed directly by another title as missing both data lines")
+        func loneTitle() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithLoneTitleTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingDataLines])
+        }
+
+        @Test(
+            "should report the title of a rejected set, or none when the set has no title",
+            arguments: zip(
+                [
+                    TLETestUtils.loadFeedWithMissingSecondLineTLEData().0,
+                    TLETestUtils.loadFeedWithShortLineTLEData().0,
+                    TLETestUtils.loadFeedWithMissingTitleTLEData().0
+                ],
+                ["CSS (TIANHE)", "CSS (TIANHE)", nil] as [String?]
+            )
+        )
+        func rejectedSetTitle(data: Data, expectedTitle: String?) throws {
+            let decoder = TLEDecoder()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.rejections.map(\.title) == [expectedTitle])
+        }
+
+        @Test(
+            "should report the physical line a rejected set starts on, counting blank lines",
+            arguments: zip(
+                [
+                    TLETestUtils.loadFeedWithBlankLinesAndMissingSecondLineTLEData(),
+                    TLETestUtils.loadFeedWithMissingTitleTLEData().0
+                ],
+                [6, 4]
+            )
+        )
+        func rejectedSetLineNumber(data: Data, expectedLineNumber: Int) throws {
+            let decoder = TLEDecoder()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.rejections.map(\.lineNumber) == [expectedLineNumber])
+        }
+
+        @Test("should reject a set with both a missing line and a wrong-length line for the missing line")
+        func missingLineOutranksInvalidLineLength() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadFeedWithShortFirstLineAndMissingSecondLineTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            #expect(report.rejections.map(\.reason) == [.missingSecondLine])
+        }
+
+        @Test("should decode the good sets of the issue #16 feed and report the set missing line 2")
+        func issue16Feed() throws {
+            let decoder = TLEDecoder()
+
+            let (data, expected) = TLETestUtils.loadIssue16FeedTLEData()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.tles == expected)
+            try #require(report.rejections.count == 1)
+            #expect(report.rejections[0].reason == .missingSecondLine)
+            #expect(report.rejections[0].title == "VANGUARD DEB")
+            #expect(report.rejections[0].lineNumber == 4)
+        }
+    }
 }
