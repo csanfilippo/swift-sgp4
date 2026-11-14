@@ -24,28 +24,6 @@
 
 import Foundation
 
-public struct TLEDecodingReport: Sendable {
-
-    public struct RejectedSet: Sendable {
-
-        public enum Reason: Sendable {
-            case invalidLineLength
-            case missingFirstLine
-            case missingSecondLine
-            case missingTitle
-            case dataLinesOutOfOrder
-            case missingDataLines
-        }
-
-        public let reason: Reason
-        public let title: String?
-        public let lineNumber: Int
-    }
-
-    public let tles: [TLE]
-    public let rejections: [RejectedSet]
-}
-
 /// A decoder that parses a Two-Line Element set (TLE) from an ASCII data buffer into a `TLE`.
 ///
 /// A TLE consists of three lines:
@@ -189,6 +167,20 @@ public final class TLEDecoder: Sendable {
         return candidateSets
     }
 
+    /// Decodes every valid TLE set in a feed and reports the sets that could not be decoded.
+    ///
+    /// Unlike ``decodeCollection(_:)``, a damaged set doesn't fail the whole feed: it is skipped
+    /// and reported in ``TLEDecodingReport/rejections``, and the sets around it still decode.
+    ///
+    /// Sets are recognized by their content, not their position: a line starting with `1 ` or
+    /// `2 ` is a data line, and any other non-blank line is a title. A title that starts with
+    /// `1 ` or `2 ` is therefore read as a data line. Sets without a title line are rejected.
+    ///
+    /// - Parameter data: The raw ASCII-encoded bytes of the feed. Empty or blank input yields an
+    ///   empty report.
+    /// - Returns: The decoded TLEs and the rejected sets, both in feed order.
+    /// - Throws: `DecodingError` whose underlying error is ``Error/encodingError`` if the data
+    ///   is not ASCII. A single non-ASCII byte anywhere in the feed fails the whole feed.
     public func decodeValidSets(_ data: Data) throws -> TLEDecodingReport {
         let lines = try numberedLines(in: data)
 
