@@ -379,5 +379,24 @@ extension TLEDecoderTests {
             #expect(report.tles == expected)
             #expect(report.rejections.map(\.reason) == [.missingDataLines])
         }
+
+        @Test(
+            "should report the title of a rejected set, or none when the set has no title",
+            arguments: zip(
+                [
+                    TLETestUtils.loadFeedWithMissingSecondLineTLEData().0,
+                    TLETestUtils.loadFeedWithShortLineTLEData().0,
+                    TLETestUtils.loadFeedWithMissingTitleTLEData().0
+                ],
+                ["CSS (TIANHE)", "CSS (TIANHE)", nil] as [String?]
+            )
+        )
+        func rejectedSetTitle(data: Data, expectedTitle: String?) throws {
+            let decoder = TLEDecoder()
+
+            let report = try decoder.decodeValidSets(data)
+
+            #expect(report.rejections.map(\.title) == [expectedTitle])
+        }
     }
 }

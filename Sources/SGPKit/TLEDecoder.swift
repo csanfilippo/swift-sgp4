@@ -38,6 +38,7 @@ public struct TLEDecodingReport: Sendable {
         }
 
         public let reason: Reason
+        public let title: String?
     }
 
     public let tles: [TLE]
@@ -189,21 +190,21 @@ public final class TLEDecoder: Sendable {
         for candidateSet in candidateSets(in: lines) {
             do {
                 switch (candidateSet.title, candidateSet.firstLine, candidateSet.secondLine) {
-                case (_?, nil, nil):
-                    rejections.append(.init(reason: .missingDataLines))
+                case (let title?, nil, nil):
+                    rejections.append(.init(reason: .missingDataLines, title: title))
                 case (nil, _, _):
-                    rejections.append(.init(reason: .missingTitle))
-                case (_, nil, _):
-                    rejections.append(.init(reason: .missingFirstLine))
-                case (_, _, nil):
-                    rejections.append(.init(reason: .missingSecondLine))
-                case (_?, _?, _?) where candidateSet.isOutOfOrder:
-                    rejections.append(.init(reason: .dataLinesOutOfOrder))
+                    rejections.append(.init(reason: .missingTitle, title: nil))
+                case (let title?, nil, _):
+                    rejections.append(.init(reason: .missingFirstLine, title: title))
+                case (let title?, _, nil):
+                    rejections.append(.init(reason: .missingSecondLine, title: title))
+                case (let title?, _?, _?) where candidateSet.isOutOfOrder:
+                    rejections.append(.init(reason: .dataLinesOutOfOrder, title: title))
                 case let (title?, firstLine?, secondLine?):
                     tles.append(try TLE(title: title, firstLine: firstLine.value, secondLine: secondLine.value))
                 }
             } catch TLEError.linesMustBeSixNineCharactersLong {
-                rejections.append(.init(reason: .invalidLineLength))
+                rejections.append(.init(reason: .invalidLineLength, title: candidateSet.title))
             }
         }
 
